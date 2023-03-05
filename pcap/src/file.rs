@@ -1,6 +1,8 @@
 use core::fmt;
 
-enum MagicNumber {
+use byte::Byte;
+
+pub enum MagicNumber {
     PCAP,
     SWAPPED,
     PCAPNG,
@@ -9,12 +11,21 @@ enum MagicNumber {
 
 impl MagicNumber {
 
-    fn from_row(bytes: u32) -> Self {
+    pub fn from_row(bytes: u32) -> Self {
         match bytes {
             0xa1b2c3d4 => Self::PCAP,
             0xd4c3b2a1 => Self::SWAPPED,
             0x0a0d0d0a => Self::PCAPNG,
             _ => Self::UNKNOWN,
+        }
+    }
+
+    pub fn is_swapped(&self) -> bool {
+        match self {
+            Self::PCAP => false,
+            Self::SWAPPED => true,
+            Self::PCAPNG => false,
+            Self::UNKNOWN => false,
         }
     }
 
@@ -28,34 +39,86 @@ impl MagicNumber {
     }
 }
 
+enum LinkType {
+    NULL,
+    ETHERNET,
+    EXPETHERNET,
+    AX25,
+    PRONET,
+    CHAOS,
+    UNKNOWN,
+}
+
+impl LinkType {
+
+    fn new(bytes: u16) -> Self {
+        match bytes {
+            0 => LinkType::NULL,
+            1 => LinkType::ETHERNET,
+            2 => LinkType::EXPETHERNET,
+            3 => LinkType::AX25,
+            4 => LinkType::PRONET,
+            5 => LinkType::CHAOS,
+            _ => LinkType::UNKNOWN,
+        }
+    }
+
+    fn to_string(&self) -> &str {
+        match self {
+            LinkType::NULL => "Null",
+            LinkType::ETHERNET => "Ethernet",
+            LinkType::EXPETHERNET => "Experimental Ethernet",
+            LinkType::AX25 => "AX 25",
+            LinkType::PRONET => "ProNET TokenRing",
+            LinkType::CHAOS => "Chaos",
+            LinkType::UNKNOWN => "Unknown",
+        }
+    }
+    
+}
+
 pub struct FileHeader {
     magic_num: MagicNumber,
     major_ver: u16,
     minor_ver: u16,
     snap_len: u32,
+    fcs: u8,
+    link_type: LinkType,
 }
 
 impl fmt::Display for FileHeader {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "File Type: {}\nVersion: {}\nSnap Length: {}\n",
+            "File Type: {}\nVersion: {}\nSnap Length: {}\nLinkType: {}\nFCS Length: {}\n",
             self.magic_num.to_string(),
             self.version(),
             self.snap_len,
+            self.link_type.to_string(),
+            self.fcs_len(),
         )
     }
 }
 
 impl FileHeader {
     
-    pub fn new(mn: u32, mv: u16, miv: u16, snap_len: u32) -> Self {
+    pub fn new(mn: MagicNumber, mv: u16, miv: u16, snap_len: u32, fcs: u8, link: u16) -> Self {
         return Self{
-            magic_num: MagicNumber::from_row(mn),
+            magic_num: mn,
             major_ver: mv,
             minor_ver: miv,
             snap_len,
+            fcs,
+            link_type: LinkType::new(link),
         };
+    }
+
+    pub fn fcs_len(&self) -> usize {
+        let mut result: usize = 0;
+        if self.fcs.nth_bit_set(0) {
+            result += self.fcs as usize;
+        }
+        return result;
     }
 
     pub fn version(&self) -> String {

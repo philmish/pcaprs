@@ -1,6 +1,6 @@
 use byte::{ByteStream, Byte};
 
-use crate::formatter::Row;
+use crate::{formatter::Row, file::{FileHeader, MagicNumber}, packet::Packet};
 
 pub struct RowParser {
     stream: ByteStream,
@@ -65,6 +65,50 @@ impl RowParser {
 
     pub fn r_nib_loaded_nth(&self, n: usize ) -> u8 {
         return self.get_nth_loaded_byte(n).r_nibble();
+    }
+}
+
+pub struct PcapParser {
+    file_h: FileHeader,
+    p_recs: Vec<Packet>,
+    r_parser: RowParser,
+    data: Vec<u8>,
+}
+
+impl PcapParser {
+    
+    pub fn new(data: Vec<u8>) -> Self {
+        let mut r_parser = RowParser::new(
+            ByteStream::from_vec(data.to_vec())
+        );
+        let mut swapped = false;
+        r_parser.load_row(0, swapped);
+        let m_num = MagicNumber::from_row(r_parser.loaded_as_u32());
+        swapped = m_num.is_swapped();
+        r_parser.load_row(1, swapped);
+        let mav = r_parser.loaded_l_half();
+        let min = r_parser.loaded_r_half();
+        r_parser.load_row(4, swapped);
+        let s_len = r_parser.loaded_as_u32();
+        r_parser.load_row(5, swapped);
+        let link = r_parser.loaded_r_half();
+        let fcs = r_parser.l_nib_loaded_nth(0);
+        let file_h = FileHeader::new(m_num, mav, min, s_len, fcs, link);
+        let p_recs: Vec<Packet> = vec![];
+        return Self{
+            file_h,
+            p_recs,
+            r_parser,
+            data: data.to_vec(),
+        };
+    }
+
+    pub fn print_fh(&self) {
+        println!("{}", self.file_h)
+    }
+
+    pub fn records_loaded(&self) -> bool {
+        self.p_recs.len() > 0
     }
 }
 
