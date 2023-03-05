@@ -46,7 +46,11 @@ pub struct ByteStream {
 impl ByteStream {
     
     pub fn from_vec(bytes: Vec<u8>) -> Self {
-        return Self{data: bytes.into()};
+        let mut data: VecDeque<u8> = VecDeque::new();
+        let _: Vec<()> = bytes.iter().map(|x| {
+            data.push_back(*x);
+        }).collect();
+        return Self{data: data};
     }
 
     pub fn len(&self) -> usize {

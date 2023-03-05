@@ -13,7 +13,7 @@ impl RowParser {
         return Self{stream, loaded_row: [0;4]};
     }
 
-    pub fn get_nth_row(&self, n: usize, swapped: bool) -> Result<[u8;4], &'static str> {
+    pub fn get_nth_row(&self, n: usize) -> Result<[u8;4], &'static str> {
         if n > self.len_rows() {
             return Err("Row out of bound.")
         } else {
@@ -21,7 +21,7 @@ impl RowParser {
             let end = start + 4;
             let mut result: [u8;4] = [0;4];
             let mut pos = 0;
-            let data = self.stream.as_vec(swapped);
+            let data = self.stream.as_vec(false);
             for i in start..end {
                 let item: u8 = data[i];
                 result[pos] = item;
@@ -31,8 +31,11 @@ impl RowParser {
         }
     }
 
-    pub fn load_row(&mut self, n: usize, swapped: bool) {
-        self.loaded_row = self.get_nth_row(n, swapped).unwrap();
+    pub fn load_row(&mut self, n: usize, swapped: bool) { 
+        self.loaded_row = self.get_nth_row(n).unwrap();
+        if swapped {
+            self.loaded_row = self.loaded_row.swapped_copy()
+        }
     }
 
     pub fn len_rows(&self) -> usize {
@@ -86,8 +89,8 @@ impl PcapParser {
         let m_num = MagicNumber::from_row(r_parser.loaded_as_u32());
         swapped = m_num.is_swapped();
         r_parser.load_row(1, swapped);
-        let mav = r_parser.loaded_l_half();
-        let min = r_parser.loaded_r_half();
+        let mav = r_parser.loaded_r_half();
+        let min = r_parser.loaded_l_half();
         r_parser.load_row(4, swapped);
         let s_len = r_parser.loaded_as_u32();
         r_parser.load_row(5, swapped);
