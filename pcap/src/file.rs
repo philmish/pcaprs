@@ -39,7 +39,7 @@ impl MagicNumber {
     }
 }
 
-enum LinkType {
+pub enum LinkType {
     NULL,
     ETHERNET,
     EXPETHERNET,
@@ -51,7 +51,7 @@ enum LinkType {
 
 impl LinkType {
 
-    fn new(bytes: u16) -> Self {
+    pub fn new(bytes: u16) -> Self {
         match bytes {
             0 => LinkType::NULL,
             1 => LinkType::ETHERNET,
@@ -63,7 +63,7 @@ impl LinkType {
         }
     }
 
-    fn to_string(&self) -> &str {
+    pub fn to_string(&self) -> &str {
         match self {
             LinkType::NULL => "Null",
             LinkType::ETHERNET => "Ethernet",
@@ -123,5 +123,9 @@ impl FileHeader {
 
     pub fn version(&self) -> String {
         return format!("{}.{}", self.major_ver, self.minor_ver);
+    }
+
+    pub fn swapped(&self) -> bool {
+        return self.magic_num.is_swapped();
     }
 }

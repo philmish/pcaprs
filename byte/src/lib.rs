@@ -39,54 +39,25 @@ impl Byte for u8 {
     }
 }
 
-pub struct ByteStream {
-    data: VecDeque<u8>
+pub fn bytes_to_u32(a: u8, b: u8, c: u8, d: u8, swapped: bool) -> u32 {
+    if swapped {
+        ((d as u32) << 2) +
+        ((c as u32) << 16) +
+        ((b as u32) << 8) +
+        ((a as u32) << 0)
+    } else {
+        ((a as u32) << 24) +
+        ((b as u32) << 16) +
+        ((c as u32) << 8) +
+        ((d as u32) << 0)
+    }
 }
 
-impl ByteStream {
-    
-    pub fn from_vec(bytes: Vec<u8>) -> Self {
-        let mut data: VecDeque<u8> = VecDeque::new();
-        let _: Vec<()> = bytes.iter().map(|x| {
-            data.push_back(*x);
-        }).collect();
-        return Self{data: data};
-    }
-
-    pub fn len(&self) -> usize {
-        return self.data.len();
-    }
-
-    pub fn as_vec(&self, swapped: bool) -> Vec<u8> {
-        let mut result: Vec<u8> = vec![];
-        let mut clone = self.data.clone();
-        if !swapped {
-            result = clone.into();
-        } else {
-            for _ in 0..self.data.len() {
-                match clone.pop_back() {
-                    Some(b) => result.push(b),
-                    None => panic!("Tried to push None value from Byte stream to vec"),
-                }
-            }
-        }
-        return result;
-    }
-
-    pub fn vec_from_offset(&self, offset: usize, swapped: bool) -> Vec<u8> {
-        let mut pos: usize  = 0;
-        let mut result: VecDeque<u8> = VecDeque::with_capacity(self.len() - offset);
-        let _: Vec<()> = self.as_vec(swapped).into_iter().map(|x| {
-            if pos >= offset {
-                result.push_front(x);
-            }
-            pos += 1;
-        }).collect();
-        return result.into();
-    }
-
-    pub fn stream_from_offset(&self, offset: usize, swapped: bool) -> Self {
-        return Self::from_vec(self.vec_from_offset(offset, swapped));
+pub fn bytes_to_u16(a: u8, b: u8, swapped: bool) -> u16 {
+    if swapped {
+        ((b as u16) << 8) | a as u16
+    } else {
+        ((a as u16) << 8) | b as u16
     }
 }
 

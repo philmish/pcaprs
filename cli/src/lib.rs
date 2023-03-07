@@ -3,10 +3,12 @@ pub mod args;
 use std::{fs::File, io::Read};
 
 use args::Args;
-use pcap::parser::PcapParser;
+use pcap::parser::{FileHeader, PacketParser, Packet};
 
 pub struct App {
-    parser: PcapParser,
+    header: FileHeader,
+    rec_parser: PacketParser,
+    records: Vec<Packet>,
 }
 
 fn read_file(f_name: String) -> File {
@@ -19,16 +21,27 @@ impl App {
         let mut data = read_file(f_name);
         let mut bytes = Vec::new();
         data.read_to_end(&mut bytes).unwrap();
-        let parser = PcapParser::new(
-            bytes.to_vec()
-        );
+        let file_h = FileHeader::new(bytes.to_vec()).unwrap();
+        println!("{}", file_h);
+        let mut parser = PacketParser::new(file_h.is_swapped());
+        let records = parser.parse_packets(bytes.to_vec(), 24);
         return Self{
-            parser,
+            header: file_h,
+            rec_parser: parser,
+            records
         };
     }
 
-    pub fn show_header(&self) {
-        self.parser.print_fh();
+    pub fn show_header(&mut self) {
+        println!("{}", self.header);
+    }
+
+    pub fn print_packet(&self, n: usize) {
+        if n + 1  > self.records.len() {
+            println!("Index out of bounds")
+        } else {
+            println!("{}", self.records[n]);
+        }
     }
 }
 

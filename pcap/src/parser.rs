@@ -1,142 +1,252 @@
-use byte::{ByteStream, Byte};
+use core::fmt;
+use byte::{bytes_to_u32,bytes_to_u16, Byte};
 
-use crate::{formatter::Row, file::{FileHeader, MagicNumber}, packet::Packet};
+use crate::file::LinkType;
 
-pub struct RowParser {
-    stream: ByteStream,
-    loaded_row: [u8;4],
+pub struct FileHeader {
+    bytes: [u8;24],
 }
 
-impl RowParser {
+impl FileHeader {
     
-    pub fn new(stream: ByteStream) -> Self {
-        return Self{stream, loaded_row: [0;4]};
-    }
-
-    pub fn get_nth_row(&self, n: usize) -> Result<[u8;4], &'static str> {
-        if n > self.len_rows() {
-            return Err("Row out of bound.")
-        } else {
-            let start = n * 4;
-            let end = start + 4;
-            let mut result: [u8;4] = [0;4];
-            let mut pos = 0;
-            let data = self.stream.as_vec(false);
-            for i in start..end {
-                let item: u8 = data[i];
-                result[pos] = item;
-                pos += 1;
+    pub fn new(bytes: Vec<u8>) -> Result<Self, &'static str> {
+        if bytes.len() < 24 {
+            return Err("Insufficent data length to parse header.");
+        }
+        let mut data: [u8;24] = [0;24];
+        let mut c: usize = 0;
+        let _: Vec<()> = bytes.iter().map(|x| {
+            if c < 24 {
+                data[c] = *x
             }
-            return Ok(result);
-        }
+            c += 1;
+        }).collect();
+        return Ok(Self { bytes: data });
     }
 
-    pub fn load_row(&mut self, n: usize, swapped: bool) { 
-        self.loaded_row = self.get_nth_row(n).unwrap();
-        if swapped {
-            self.loaded_row = self.loaded_row.swapped_copy()
-        }
+    pub fn is_swapped(&self) -> bool {
+        return self.magic_number() == 0xd4c3b2a1;
     }
 
-    pub fn len_rows(&self) -> usize {
-        return self.stream.len() / 4;
+    fn magic_number(&self) -> u32 {
+        bytes_to_u32(self.bytes[0], self.bytes[1], self.bytes[2], self.bytes[3], false)
     }
 
-    pub fn loaded_as_u32(&self) -> u32 {
-        return self.loaded_row.as_u32();
+    fn major_version(&self) -> u16 {
+        bytes_to_u16(self.bytes[4], self.bytes[5], self.is_swapped())
     }
 
-    pub fn loaded_l_half(&self) -> u16 {
-        return self.loaded_row.l_half_u16();
+    fn minor_version(&self) -> u16 {
+        bytes_to_u16(self.bytes[6], self.bytes[7], self.is_swapped())
     }
 
-    pub fn loaded_r_half(&self) -> u16 {
-        return self.loaded_row.r_half_u16();
+    pub fn version(&self) -> String {
+       format!("{}.{}", self.major_version(), self.minor_version()).to_string()
     }
 
-    pub fn get_nth_loaded_byte(&self, n: usize) -> u8 {
-        if n <= 3 {
-            return self.loaded_row[n];
+    fn snap_len(&self) -> u32 {
+        bytes_to_u32(self.bytes[16], self.bytes[17], self.bytes[18], self.bytes[19], self.is_swapped())
+    }
+
+    fn link_type(&self) -> u16 {
+        if self.is_swapped() {
+            bytes_to_u16(self.bytes[20], self.bytes[21], self.is_swapped())
         } else {
-            panic!("Invalid index to take nth item of loaded row")
+            bytes_to_u16(self.bytes[22], self.bytes[23], self.is_swapped())
         }
     }
 
-    pub fn l_nib_loaded_nth(&self, n: usize ) -> u8 {
-        return self.get_nth_loaded_byte(n).l_nibble();
-    }
-
-    pub fn r_nib_loaded_nth(&self, n: usize ) -> u8 {
-        return self.get_nth_loaded_byte(n).r_nibble();
+    fn fcs(&self) -> u8 {
+        if self.is_swapped() {
+            return self.bytes[23].l_nibble();
+        } else {
+            return self.bytes[20].l_nibble();
+        }
     }
 }
 
-pub struct PcapParser {
-    file_h: FileHeader,
-    p_recs: Vec<Packet>,
-    r_parser: RowParser,
-    data: Vec<u8>,
+impl fmt::Display for FileHeader {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "Magic: {}\nVersion: {}\nSnap Length: {}\nLink: {}\nFCS: {}\n",
+            self.magic_number(),
+            self.version(),
+            self.snap_len(),
+            LinkType::new(self.link_type()).to_string(),
+            self.fcs(),
+        )
+    }
 }
 
-impl PcapParser {
+#[derive(Clone)]
+pub struct PacketHeader {
+    data: [u8;16],
+    is_swapped: bool
+}
+
+impl fmt::Display for PacketHeader {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "TS upper: {}\nTS lower: {}\nCapture Len: {}\nOriginal Len: {}",
+            self.ts_sec(),
+            self.ts_ms_or_ns(),
+            self.cap_len(),
+            self.packet_len(),
+        )
+    }
+}
+
+impl PacketHeader {
     
-    pub fn new(data: Vec<u8>) -> Self {
-        let mut r_parser = RowParser::new(
-            ByteStream::from_vec(data.to_vec())
-        );
-        let mut swapped = false;
-        r_parser.load_row(0, swapped);
-        let m_num = MagicNumber::from_row(r_parser.loaded_as_u32());
-        swapped = m_num.is_swapped();
-        r_parser.load_row(1, swapped);
-        let mav = r_parser.loaded_r_half();
-        let min = r_parser.loaded_l_half();
-        r_parser.load_row(4, swapped);
-        let s_len = r_parser.loaded_as_u32();
-        r_parser.load_row(5, swapped);
-        let link = r_parser.loaded_r_half();
-        let fcs = r_parser.l_nib_loaded_nth(0);
-        let file_h = FileHeader::new(m_num, mav, min, s_len, fcs, link);
-        let p_recs: Vec<Packet> = vec![];
-        return Self{
-            file_h,
-            p_recs,
-            r_parser,
-            data: data.to_vec(),
+    fn new(data: [u8;16], is_swapped: bool) -> Self {
+        return Self{data, is_swapped};
+    }
+
+    fn ts_sec(&self) -> u32 {
+        bytes_to_u32(self.data[0], self.data[1], self.data[2], self.data[3], self.is_swapped)
+    }
+
+    fn ts_ms_or_ns(&self) -> u32 {
+        bytes_to_u32(self.data[4], self.data[5], self.data[6], self.data[7], self.is_swapped)
+    }
+
+    fn cap_len(&self) -> u32 {
+        bytes_to_u32(self.data[8], self.data[9], self.data[10], self.data[11], self.is_swapped)
+    }
+
+    fn packet_len(&self) -> u32 {
+        bytes_to_u32(self.data[12], self.data[13], self.data[14], self.data[15], self.is_swapped)
+    }
+}
+
+#[derive(Clone)]
+pub struct Packet {
+    header: PacketHeader,
+    data: Vec<u8>
+}
+
+impl fmt::Display for Packet {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut bytes: String = "".to_string();
+        for i in 0..self.data.len() {
+            bytes = format!("{} {:02X?}", bytes,  self.data[i])
+        }
+        write!(
+            f,
+            "{}\n{}\n",
+            self.header,
+            bytes,
+        )
+    }
+}
+
+impl Packet {
+
+    pub fn new(header: PacketHeader, data: Vec<u8>) -> Self {
+        return Self{header, data}; 
+    }
+}
+
+enum ParserState {
+    Header,
+    Body
+}
+
+pub struct PacketParser {
+    state: ParserState,
+    active_header: [u8;16],
+    active_data: Vec<u8>,
+    curr_offset: usize,
+    curr_pos: usize,
+    curr_body_len: usize,
+    packets: Vec<Packet>,
+    is_swapped: bool,
+}
+
+
+impl PacketParser {
+
+    pub fn new(swapped: bool) -> Self {
+        return PacketParser{
+            state: ParserState::Header,
+            active_header: [0;16],
+            active_data: vec![],
+            curr_offset: 0,
+            curr_pos: 0,
+            curr_body_len: 0,
+            packets: vec![],
+            is_swapped: swapped,
         };
     }
 
-    pub fn print_fh(&self) {
-        println!("{}", self.file_h)
+    fn header_check(&mut self) {
+        if self.active_header.len() == 16 && self.curr_pos == 16 {
+            self.state = ParserState::Body;
+            self.curr_pos = 0;
+            let tmph = PacketHeader::new(self.active_header, self.is_swapped);
+            self.curr_body_len = tmph.cap_len() as usize;
+        }
     }
 
-    pub fn records_loaded(&self) -> bool {
-        self.p_recs.len() > 0
+    fn body_check(&mut self) {
+        if  self.curr_pos == self.curr_body_len {
+            self.packets.push(
+                Packet::new(PacketHeader::new(
+                        self.active_header, self.is_swapped),
+                        self.active_data.to_vec()
+                )
+            );
+            self.state = ParserState::Header;
+            self.active_header = [0;16];
+            self.active_data = vec![];
+            self.curr_pos = 0;
+        }
+    }
+
+    fn put_byte(&mut self, byte: u8) {
+        match self.state {
+            ParserState::Header => self.active_header[self.curr_pos] = byte,
+            ParserState::Body => self.active_data.push(byte),
+        }
+        self.curr_pos += 1;
+        self.curr_offset += 1;
+    }
+
+    fn check_switch(&mut self) {
+        match self.state {
+            ParserState::Header => self.header_check(),
+            ParserState::Body => self.body_check(),
+        }
+    }
+
+    pub fn parse_packets(&mut self, data: Vec<u8>, offset: usize) -> Vec<Packet> {
+        let bytes = get_vec_from_offset(data, offset);
+        for byte in bytes.into_iter() {
+            self.check_switch();
+            self.put_byte(byte);
+        }
+        return self.packets.to_vec();
     }
 }
+
+fn get_vec_from_offset(v: Vec<u8>, n: usize) -> Vec<u8> {
+    let mut c: usize = 0;
+    let mut res: Vec<u8> = vec![];
+    let _: Vec<()> =  v.into_iter().map(|x| {
+        if c >= n {
+            res.push(x)
+        }
+        c += 1;
+    }).collect();
+    return res;
+}
+
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_row_parser() {
-        let stream = ByteStream::from_vec(
-            vec![
-                0xA1, 0xA1, 0xA1, 0xA1,
-                0xB1, 0xB1, 0xB1, 0xB1,
-                0xC1, 0xC1, 0xC1, 0xC1,
-                0xD1, 0xD1, 0xD1, 0xD1,
-        ]);
-        let mut parser = RowParser::new(stream);
-        parser.load_row(0, false);
-        assert_eq!(parser.len_rows(), 4);
-        assert_eq!(
-            parser.loaded_as_u32(), 0xA1A1A1A1
-        );
-        parser.load_row(0, true);
-        assert_eq!(parser.loaded_as_u32(), 0xD1D1D1D1);
-        assert_eq!(parser.r_nib_loaded_nth(0), 1);
-        assert_eq!(parser.l_nib_loaded_nth(0), 13);
-    }
+
 }
