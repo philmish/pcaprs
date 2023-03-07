@@ -1,5 +1,3 @@
-use std::collections::VecDeque;
-
 pub trait Byte {
     fn to_u16(&self, b: Self) -> u16;
     fn to_u32(&self, b: Self, c: Self, d: Self) -> u32;

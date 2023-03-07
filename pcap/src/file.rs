@@ -1,6 +1,6 @@
 use core::fmt;
 
-use byte::Byte;
+use byte::{Byte, bytes_to_u32, bytes_to_u16};
 
 pub enum MagicNumber {
     PCAP,
@@ -77,3 +77,78 @@ impl LinkType {
     
 }
 
+pub struct FileHeader {
+    bytes: [u8;24],
+}
+
+impl FileHeader {
+    
+    pub fn new(bytes: Vec<u8>) -> Result<Self, &'static str> {
+        if bytes.len() < 24 {
+            return Err("Insufficent data length to parse header.");
+        }
+        let mut data: [u8;24] = [0;24];
+        let mut c: usize = 0;
+        let _: Vec<()> = bytes.iter().map(|x| {
+            if c < 24 {
+                data[c] = *x
+            }
+            c += 1;
+        }).collect();
+        return Ok(Self { bytes: data });
+    }
+
+    pub fn is_swapped(&self) -> bool {
+        return self.magic_number() == 0xd4c3b2a1;
+    }
+
+    fn magic_number(&self) -> u32 {
+        bytes_to_u32(self.bytes[0], self.bytes[1], self.bytes[2], self.bytes[3], false)
+    }
+
+    fn major_version(&self) -> u16 {
+        bytes_to_u16(self.bytes[4], self.bytes[5], self.is_swapped())
+    }
+
+    fn minor_version(&self) -> u16 {
+        bytes_to_u16(self.bytes[6], self.bytes[7], self.is_swapped())
+    }
+
+    pub fn version(&self) -> String {
+       format!("{}.{}", self.major_version(), self.minor_version()).to_string()
+    }
+
+    fn snap_len(&self) -> u32 {
+        bytes_to_u32(self.bytes[16], self.bytes[17], self.bytes[18], self.bytes[19], self.is_swapped())
+    }
+
+    fn link_type(&self) -> u16 {
+        if self.is_swapped() {
+            bytes_to_u16(self.bytes[20], self.bytes[21], self.is_swapped())
+        } else {
+            bytes_to_u16(self.bytes[22], self.bytes[23], self.is_swapped())
+        }
+    }
+
+    fn fcs(&self) -> u8 {
+        if self.is_swapped() {
+            return self.bytes[23].l_nibble();
+        } else {
+            return self.bytes[20].l_nibble();
+        }
+    }
+}
+
+impl fmt::Display for FileHeader {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "Magic: {}\nVersion: {}\nSnap Length: {}\nLink: {}\nFCS: {}\n",
+            MagicNumber::from_row(self.magic_number()).to_string(),
+            self.version(),
+            self.snap_len(),
+            LinkType::new(self.link_type()).to_string(),
+            self.fcs(),
+        )
+    }
+}

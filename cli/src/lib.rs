@@ -3,12 +3,13 @@ pub mod args;
 use std::{fs::File, io::Read};
 
 use args::Args;
-use pcap::parser::{FileHeader, PacketParser, Packet};
+use pcap::parser::RecordParser;
+use pcap::file::FileHeader;
+use pcap::record::Record;
 
 pub struct App {
     header: FileHeader,
-    rec_parser: PacketParser,
-    records: Vec<Packet>,
+    records: Vec<Record>,
 }
 
 fn read_file(f_name: String) -> File {
@@ -23,11 +24,10 @@ impl App {
         data.read_to_end(&mut bytes).unwrap();
         let file_h = FileHeader::new(bytes.to_vec()).unwrap();
         println!("{}", file_h);
-        let mut parser = PacketParser::new(file_h.is_swapped());
-        let records = parser.parse_packets(bytes.to_vec(), 24);
+        let mut parser = RecordParser::new(file_h.is_swapped());
+        let records = parser.parse_records(bytes.to_vec(), 24);
         return Self{
             header: file_h,
-            rec_parser: parser,
             records
         };
     }
@@ -48,5 +48,4 @@ impl App {
 pub fn run_app(args: Args) -> App {
     App::from_file(args.f_name())
 }
-
 
