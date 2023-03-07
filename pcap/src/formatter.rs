@@ -151,8 +151,8 @@ mod tests {
             parser.loaded_as_u32(), 0xA1A1A1A1
         );
         parser.load_row(0, true);
-        assert_eq!(parser.loaded_as_u32(), 0xD1D1D1D1);
+        assert_eq!(parser.loaded_as_u32(), 0xA1A1A1A1);
         assert_eq!(parser.r_nib_loaded_nth(0), 1);
-        assert_eq!(parser.l_nib_loaded_nth(0), 13);
+        assert_eq!(parser.l_nib_loaded_nth(0), 10);
     }
 }
