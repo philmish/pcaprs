@@ -1,5 +1,6 @@
 use std::fmt;
 use byte::bytes_to_u32;
+use network::ethernet_frame::{EthernetFrame, EthernetFrameParser};
 
 
 #[derive(Clone)]
@@ -58,9 +59,10 @@ impl fmt::Display for Record {
         }
         write!(
             f,
-            "{}\n{}\n",
+            "{}\n{}\n{}\n",
             self.header,
             bytes,
+            self.parse_ethernet_frame(),
         )
     }
 }
@@ -69,5 +71,13 @@ impl Record {
 
     pub fn new(header: RecordHeader, data: Vec<u8>) -> Self {
         return Self{header, data}; 
+    }
+
+    pub fn parse_ethernet_frame(&self) -> EthernetFrame {
+        let mut parser = EthernetFrameParser::new();
+        for i in 0..14 {
+            parser.put_byte(self.data[i])
+        }
+        return parser.parse();
     }
 }

@@ -41,6 +41,7 @@ impl App {
             println!("Index out of bounds")
         } else {
             println!("{}", self.records[n]);
+            println!("{}", self.records[n].parse_ethernet_frame());
         }
     }
 }

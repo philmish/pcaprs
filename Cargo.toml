@@ -4,5 +4,6 @@ members = [
     "pcap",
     "byte",
     "cli",
+    "network",
 ]
 
