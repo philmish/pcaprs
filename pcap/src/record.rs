@@ -1,6 +1,6 @@
 use std::fmt;
 use byte::bytes_to_u32;
-use network::ethernet_frame::{EthernetFrame, EthernetFrameParser};
+use network::{ethernet_frame::{EthernetFrame, EthernetFrameParser}, ip::{IPv4Header, IPv4HeaderParser}};
 
 
 #[derive(Clone)]
@@ -59,10 +59,11 @@ impl fmt::Display for Record {
         }
         write!(
             f,
-            "{}\n{}\n{}\n",
+            "{}\n{}\n{}\n{}\n",
             self.header,
             bytes,
             self.parse_ethernet_frame(),
+            self.parse_ip_header(),
         )
     }
 }
@@ -79,5 +80,14 @@ impl Record {
             parser.put_byte(self.data[i])
         }
         return parser.parse();
+    }
+
+    pub fn parse_ip_header(&self) -> IPv4Header {
+        let mut parser = IPv4HeaderParser::new(true);
+        parser.step(self.data[14]);
+        for i in 15..34 {
+            parser.step(self.data[i])
+        }
+        return parser.get_header();
     }
 }

@@ -4,5 +4,6 @@ fn main() {
     let a = Args::init();
     let mut app = run_app(a);
     app.show_header();
-    app.print_packet(1);
+    app.print_packet(2);
+    app.print_packet(3);
 }

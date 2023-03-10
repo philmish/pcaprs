@@ -23,7 +23,6 @@ impl App {
         let mut bytes = Vec::new();
         data.read_to_end(&mut bytes).unwrap();
         let file_h = FileHeader::new(bytes.to_vec()).unwrap();
-        println!("{}", file_h);
         let mut parser = RecordParser::new(file_h.is_swapped());
         let records = parser.parse_records(bytes.to_vec(), 24);
         return Self{
@@ -41,7 +40,6 @@ impl App {
             println!("Index out of bounds")
         } else {
             println!("{}", self.records[n]);
-            println!("{}", self.records[n].parse_ethernet_frame());
         }
     }
 }
