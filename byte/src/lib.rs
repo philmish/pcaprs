@@ -1,3 +1,5 @@
+use std::net::Ipv4Addr;
+
 pub trait Byte {
     fn to_u16(&self, b: Self) -> u16;
     fn to_u32(&self, b: Self, c: Self, d: Self) -> u32;
@@ -56,6 +58,121 @@ pub fn bytes_to_u16(a: u8, b: u8, swapped: bool) -> u16 {
         ((b as u16) << 8) | a as u16
     } else {
         ((a as u16) << 8) | b as u16
+    }
+}
+
+
+pub struct ByteParser {
+    curr_word: u8,
+    curr_dword: [u8;2],
+    d_pos: usize,
+    curr_qword: [u8;4],
+    q_pos: usize,
+    b_swap: bool,
+}
+
+impl ByteParser {
+
+    pub fn new(b_swap: bool) -> Self {
+        return Self{
+            curr_word: 0,
+            curr_dword: [0;2],
+            d_pos: 0,
+            curr_qword: [0;4],
+            q_pos: 0,
+            b_swap,
+        }
+    }
+
+    pub fn word(&self) -> u8 {
+        return self.curr_word.clone();
+    }
+
+    pub fn set_word(&mut self, b: u8) {
+        self.curr_word = b;
+    }
+
+    pub fn word_l_nibble(&self) -> u8 {
+        return self.curr_word.l_nibble();
+    }
+
+    pub fn word_r_nibble(&self) -> u8 {
+        return self.curr_word.r_nibble();
+    }
+
+    pub fn toggle_swap(&mut self) {
+        self.b_swap = !self.b_swap;
+    }
+
+    pub fn dword_done(&self) -> bool {
+        self.d_pos == 2
+    }
+
+    pub fn dword_as_u16(&self) -> u16 {
+        return bytes_to_u16(self.curr_dword[0], self.curr_dword[1], self.b_swap);
+    }
+
+    pub fn qword(&self) -> [u8;4] {
+        let tmp = self.curr_qword.clone();
+        if self.b_swap {
+            return [tmp[3],tmp[2],tmp[1], tmp[0]];
+        } else {
+            return tmp;
+        }
+    }
+
+    pub fn qword_as_u32(&self) -> u32 {
+        return bytes_to_u32(
+            self.curr_qword[0],
+            self.curr_qword[1],
+            self.curr_qword[2],
+            self.curr_qword[3],
+            self.b_swap
+        );
+    }
+
+    pub fn qword_as_ipv4(&self) -> Ipv4Addr {
+        let tmp = self.qword();
+        if self.b_swap {
+            return Ipv4Addr::new(tmp[3], tmp[2], tmp[1], tmp[0]);
+        }
+        return Ipv4Addr::new(tmp[0], tmp[1], tmp[2], tmp[3]);
+    }
+
+    pub fn qword_done(&self) -> bool {
+        self.q_pos == 4
+    }
+
+    pub fn set_q_byte(&mut self, b: u8) {
+        if self.q_pos >= 4 {
+            println!("QWord full.");
+            return;
+        } else {
+            self.curr_qword[self.q_pos] = b;
+            self.q_pos += 1;
+            return;
+        }
+    }
+
+    pub fn reset_qword(&mut self) {
+        self.curr_qword = [0;4];
+        self.q_pos = 0;
+    }
+
+    pub fn set_d_byte(&mut self, b: u8) {
+        if self.d_pos >= 2 {
+            println!("DWord full.");
+            return;
+        } else {
+            self.curr_dword[self.d_pos] = b;
+            self.d_pos += 1;
+            return;
+        }
+    }
+
+    pub fn reset_dword(&mut self) {
+        self.curr_dword = [0;2];
+        self.d_pos = 0;
     }
 }
 

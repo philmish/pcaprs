@@ -1,111 +1,7 @@
 use std::fmt::Display;
 use std::net::Ipv4Addr;
 
-use byte::{bytes_to_u16, Byte};
-
-struct ByteParser {
-    curr_word: u8,
-    curr_dword: [u8;2],
-    d_pos: usize,
-    curr_qword: [u8;4],
-    q_pos: usize,
-    b_swap: bool,
-}
-
-impl ByteParser {
-
-    fn new(b_swap: bool) -> Self {
-        return Self{
-            curr_word: 0,
-            curr_dword: [0;2],
-            d_pos: 0,
-            curr_qword: [0;4],
-            q_pos: 0,
-            b_swap,
-        }
-    }
-
-    fn word(&self) -> u8 {
-        return self.curr_word.clone();
-    }
-
-    fn set_word(&mut self, b: u8) {
-        self.curr_word = b;
-    }
-
-    fn word_l_nibble(&self) -> u8 {
-        return self.curr_word.l_nibble();
-    }
-
-    fn word_r_nibble(&self) -> u8 {
-        return self.curr_word.r_nibble();
-    }
-
-    fn toggle_swap(&mut self) {
-        self.b_swap = !self.b_swap;
-    }
-
-    fn dword_done(&self) -> bool {
-        self.d_pos == 2
-    }
-
-    fn dword_as_u16(&self) -> u16 {
-        return bytes_to_u16(self.curr_dword[0], self.curr_dword[1], self.b_swap);
-    }
-
-    fn qword(&self) -> [u8;4] {
-        let tmp = self.curr_qword.clone();
-        if self.b_swap {
-            return [tmp[3],tmp[2],tmp[1], tmp[0]];
-        } else {
-            return tmp;
-        }
-    }
-
-    fn qword_as_ipv4(&self) -> Ipv4Addr {
-        let tmp = self.qword();
-        if self.b_swap {
-            return Ipv4Addr::new(tmp[3], tmp[2], tmp[1], tmp[0]);
-        }
-        return Ipv4Addr::new(tmp[0], tmp[1], tmp[2], tmp[3]);
-    }
-
-    fn qword_done(&self) -> bool {
-        self.q_pos == 4
-    }
-
-    fn set_q_byte(&mut self, b: u8) {
-        if self.q_pos >= 4 {
-            println!("QWord full.");
-            return;
-        } else {
-            self.curr_qword[self.q_pos] = b;
-            self.q_pos += 1;
-            return;
-        }
-    }
-
-    fn reset_qword(&mut self) {
-        self.curr_qword = [0;4];
-        self.q_pos = 0;
-    }
-
-    fn set_d_byte(&mut self, b: u8) {
-        if self.d_pos >= 2 {
-            println!("DWord full.");
-            return;
-        } else {
-            self.curr_dword[self.d_pos] = b;
-            self.d_pos += 1;
-            return;
-        }
-    }
-
-    fn reset_dword(&mut self) {
-        self.curr_dword = [0;2];
-        self.d_pos = 0;
-    }
-}
+use byte::ByteParser;
 
 pub enum IPv4HeaderField {
     V(u8),
@@ -115,7 +11,7 @@ pub enum IPv4HeaderField {
     ID(u16),
     FF(u16),
     TTL(u8),
-    PRT(u8),
+    PRT(IpDataProtocol),
     CHECK(u16),
     SRC(Ipv4Addr),
     DST(Ipv4Addr),
@@ -133,7 +29,7 @@ impl Clone for IPv4HeaderField {
             IPv4HeaderField::ID(b) => IPv4HeaderField::ID(*b),
             IPv4HeaderField::FF(b) => IPv4HeaderField::FF(*b),
             IPv4HeaderField::TTL(b) => IPv4HeaderField::TTL(*b),
-            IPv4HeaderField::PRT(b) => IPv4HeaderField::PRT(*b),
+            IPv4HeaderField::PRT(b) => IPv4HeaderField::PRT(b.clone()),
             IPv4HeaderField::CHECK(b) => IPv4HeaderField::CHECK(*b),
             IPv4HeaderField::SRC(b) => IPv4HeaderField::SRC(*b),
             IPv4HeaderField::DST(b) =>IPv4HeaderField::DST(*b),
@@ -152,11 +48,92 @@ impl Display for IPv4HeaderField {
             IPv4HeaderField::ID(b) => write!(f, "ID: {:#06x}", b),
             IPv4HeaderField::FF(b) => write!(f, "FF: {:#018b}", b),
             IPv4HeaderField::TTL(b) => write!(f, "TTL: {}", b),
-            IPv4HeaderField::PRT(b) => write!(f, "Protocol: {}", b),
+            IPv4HeaderField::PRT(b) => write!(f, "Protocol: {}", b.to_str()),
             IPv4HeaderField::CHECK(b) => write!(f, "Checksum: {:#018b}", b),
             IPv4HeaderField::SRC(b) => write!(f, "Source: {}", b),
             IPv4HeaderField::DST(b) => write!(f, "Destination: {}", b),
             IPv4HeaderField::UNSET => write!(f, "UNSET"),
+        }
+    }
+}
+
+pub enum IpDataProtocol {
+    IPv6HopByHop,
+    ICMP,
+    IGMP,
+    GGP,
+    IPinIP,
+    ST,
+    TCP,
+    CBT,
+    UDP,
+    EGP,
+    IGP,
+    NVP2,
+    UNKNOWN(u8),
+}
+
+impl IpDataProtocol {
+
+    pub fn new(b: u8) -> Self {
+        match b {
+            0 => Self::IPv6HopByHop,
+            1 => Self::ICMP,
+            2 => Self::IGMP,
+            3 => Self::GGP,
+            4 => Self::IPinIP,
+            5 => Self::ST,
+            6 => Self::TCP,
+            7 => Self::CBT,
+            8 => Self::EGP,
+            9 => Self::IGP,
+            11 => Self::NVP2,
+            17 => Self::UDP,
+            _ => Self::UNKNOWN(b),
+        }
+    }
+
+    pub fn to_str(&self) -> String {
+        match self {
+            Self::IPv6HopByHop => "IPv6 Hop-By-Hop Option".to_string(),
+            Self::ICMP => "ICMP".to_string(),
+            Self::IGMP => "Internet Group Management Protocol".to_string(),
+            Self::GGP => "Gateway-to-Gateway".to_string(),
+            Self::IPinIP => "IP in IP (encapsulated)".to_string(),
+            Self::ST => "Internet Stream Protocol".to_string(),
+            Self::TCP => "TCP".to_string(),
+            Self::CBT => "Core Based Trees".to_string(),
+            Self::EGP => "Exterior Gateway".to_string(),
+            Self::IGP => "Interior Gateway".to_string(),
+            Self::NVP2 => "Network Voice Protocol".to_string(),
+            Self::UDP => "UDP".to_string(),
+            Self::UNKNOWN(b) => format!("Unknown {}", b),
+        }
+    }
+}
+
+impl Display for IpDataProtocol {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Protocol: {}", self.to_string())
+    }
+}
+
+impl Clone for IpDataProtocol {
+    fn clone(&self) -> Self {
+        match self {
+            Self::IPv6HopByHop => Self::IPv6HopByHop,
+            Self::ICMP => Self::ICMP,
+            Self::IGMP => Self::IGMP,
+            Self::GGP => Self::GGP,
+            Self::IPinIP => Self::IPinIP,
+            Self::ST => Self::ST,
+            Self::TCP => Self::TCP,
+            Self::CBT => Self::CBT,
+            Self::EGP => Self::EGP,
+            Self::IGP => Self::IGP,
+            Self::NVP2 => Self::NVP2,
+            Self::UDP => Self::UDP,
+            Self::UNKNOWN(b) => Self::UNKNOWN(*b),
         }
     }
 }
@@ -330,7 +307,7 @@ impl IPv4HeaderParser {
         self.header.set_field(
             IPv4HeaderField::TTL(self.parser.word())
         );
-        self.curr_state = IPv4HeaderField::PRT(0)
+        self.curr_state = IPv4HeaderField::PRT(IpDataProtocol::UNKNOWN(254))
     }
 
     fn ff(&mut self) {
@@ -345,7 +322,7 @@ impl IPv4HeaderParser {
 
     fn proto(&mut self) {
         self.header.set_field(
-            IPv4HeaderField::PRT(self.parser.word()),
+            IPv4HeaderField::PRT(IpDataProtocol::new(self.parser.word())),
         );
         self.curr_state = IPv4HeaderField::CHECK(0);
     }
