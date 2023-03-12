@@ -1,7 +1,11 @@
 use std::fmt;
 use byte::bytes_to_u32;
-use network::{ethernet_frame::{EthernetFrame, EthernetFrameParser}, ip::{IPv4Header, IPv4HeaderParser}};
-use network::transport::tcp::{TcpHeader, TcpHeaderParser};
+use network::{
+    ethernet_frame::{EthernetFrame, EthernetFrameParser},
+    ip::{IPv4Header, IPv4HeaderParser},
+    transport::udp::{UdpHeader, UdpHeaderParser},
+    transport::tcp::{TcpHeader, TcpHeaderParser}
+};
 
 
 #[derive(Clone)]
@@ -89,6 +93,14 @@ impl Record {
         parser.step(self.data[14]);
         for i in 15..34 {
             parser.step(self.data[i])
+        }
+        return parser.get_header();
+    }
+
+    pub fn parse_udp_header(&self) -> UdpHeader {
+        let mut parser = UdpHeaderParser::new(false);
+        for i in 34..43 {
+            parser.parse(self.data[i])
         }
         return parser.get_header();
     }
