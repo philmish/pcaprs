@@ -41,7 +41,7 @@ impl Byte for u8 {
 
 pub fn bytes_to_u32(a: u8, b: u8, c: u8, d: u8, swapped: bool) -> u32 {
     if swapped {
-        ((d as u32) << 2) +
+        ((d as u32) << 24) +
         ((c as u32) << 16) +
         ((b as u32) << 8) +
         ((a as u32) << 0)

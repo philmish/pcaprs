@@ -1,10 +1,11 @@
 use std::fmt;
 use byte::bytes_to_u32;
 use network::{
-    ethernet_frame::{EthernetFrame, EthernetFrameParser},
+    ethernet_frame::{EthernetFrame, EthernetFrameParser, PacketType},
     ip::{IPv4Header, IPv4HeaderParser},
     transport::udp::{UdpHeader, UdpHeaderParser},
-    transport::tcp::{TcpHeader, TcpHeaderParser}
+    transport::tcp::{TcpHeader, TcpHeaderParser},
+    netw::ipv6::{IPv6Header, IPv6HeaderParser}
 };
 
 
@@ -62,12 +63,14 @@ impl fmt::Display for Record {
         for i in 0..self.data.len() {
             bytes = format!("{} {:02X?}", bytes,  self.data[i])
         }
+        let frame = self.parse_ethernet_frame();
+        let ip = self.ip_header_to_string(frame.packet_type());
         write!(
             f,
             "{}\n{}\n{}\n{}\n{}",
             self.header,
-            self.parse_ethernet_frame(),
-            self.parse_ip_header(),
+            frame,
+            ip,
             self.parse_tcp_header(),
             bytes,
         )
@@ -88,13 +91,33 @@ impl Record {
         return parser.parse();
     }
 
-    pub fn parse_ip_header(&self) -> IPv4Header {
+    pub fn parse_ipv4_header(&self) -> IPv4Header {
         let mut parser = IPv4HeaderParser::new(true);
         parser.step(self.data[14]);
         for i in 15..34 {
             parser.step(self.data[i])
         }
         return parser.get_header();
+    }
+
+    pub fn parse_ipv6_header(&self) -> IPv6Header {
+        let mut parser = IPv6HeaderParser::new(true);
+        for i in 14..54 {
+            parser.parse(self.data[i])
+        }
+        return parser.get_header();
+    }
+
+    pub fn ip_header_to_string(&self, t: PacketType) -> String {
+        match t {
+            PacketType::IPv4 => format!("{}", self.parse_ipv4_header()),
+            PacketType::IPv6 => format!("{}", self.parse_ipv6_header()),
+            PacketType::ARP => format!("ARP Header parsing not implemented"),
+            PacketType::IPX => format!("IPX Header parsing not implemented"),
+            PacketType::LENGTH(b) => format!("IEEE 802.3 Header parsing not implemented (length: {})", b),
+            PacketType::UNKNWON => format!("UNKNWON ip header type encountered"),
+
+        }
     }
 
     pub fn parse_udp_header(&self) -> UdpHeader {

@@ -49,6 +49,19 @@ pub enum PacketType {
     UNKNWON
 }
 
+impl Clone for PacketType {
+    fn clone(&self) -> Self {
+        match self {
+            Self::IPv4 => Self::IPv4,
+            Self::IPv6 => Self::IPv6,
+            Self::ARP => Self::ARP,
+            Self::IPX => Self::IPX,
+            Self::LENGTH(b) => Self::LENGTH(*b),
+            Self::UNKNWON => Self::UNKNWON,
+        }
+    }
+}
+
 impl PacketType {
 
     pub fn new(bytes: u16) -> Self {
@@ -103,6 +116,10 @@ impl EthernetFrame {
             PacketType::UNKNWON => false,
             PacketType::ARP => false,
         }
+    }
+
+    pub fn packet_type(&self) -> PacketType {
+        self.p_type.clone()
     }
 }
 
