@@ -47,4 +47,3 @@ impl App {
 pub fn run_app(args: Args) -> App {
     App::from_file(args.f_name())
 }
-

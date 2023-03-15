@@ -2,6 +2,8 @@ use std::{net::Ipv6Addr, fmt::Display};
 
 use byte::ByteParser;
 
+use crate::transport::protocols::TransportProtocol;
+
 pub struct Ipv6AddressParser {
     buf: [u16;8],
     pos: usize,
@@ -49,7 +51,7 @@ pub enum IPv6HeaderField {
     V(u8),
     FLOW(u32),
     LEN(u16),
-    PRT(u8),
+    PRT(TransportProtocol),
     HOPL(u8),
     SRC(Ipv6Addr),
     DST(Ipv6Addr),
@@ -62,7 +64,7 @@ impl Display for IPv6HeaderField {
             Self::V(b) => write!(f, "IPv{}", b),
             Self::FLOW(b) => write!(f, "Flow: {:#010x}", b),
             Self::LEN(b) => write!(f, "Length: {}", b),
-            Self::PRT(b) => write!(f, "Next Header: {}", b),
+            Self::PRT(b) => write!(f, "Next Header: {}", b.to_str()),
             Self::HOPL(b) => write!(f, "Hop Length: {}", b),
             Self::SRC(b) => write!(f, "Source: {}", b),
             Self::DST(b) => write!(f, "Destination: {}", b),
@@ -77,7 +79,7 @@ impl Clone for IPv6HeaderField {
             Self::V(b) => Self::V(*b),
             Self::FLOW(b) => Self::FLOW(*b),
             Self::LEN(b) => Self::LEN(*b),
-            Self::PRT(b) => Self::PRT(*b),
+            Self::PRT(b) => Self::PRT(b.clone()),
             Self::HOPL(b) => Self::HOPL(*b),
             Self::SRC(b) => Self::SRC(*b),
             Self::DST(b) => Self::DST(*b),
@@ -216,12 +218,12 @@ impl IPv6HeaderParser {
                 IPv6HeaderField::LEN(self.b_parser.dword_as_u16())
             );
             self.b_parser.reset_dword();
-            self.curr_field = IPv6HeaderField::PRT(0);
+            self.curr_field = IPv6HeaderField::PRT(TransportProtocol::UNKNOWN(254));
         }
     }
 
     fn proto(&mut self) {
-        self.header.set_field(IPv6HeaderField::PRT(self.b_parser.word()));
+        self.header.set_field(IPv6HeaderField::PRT(TransportProtocol::new(self.b_parser.word())));
         self.curr_field = IPv6HeaderField::HOPL(0);
     }
 
