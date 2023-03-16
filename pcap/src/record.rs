@@ -5,7 +5,7 @@ use network::{
     ip::{IPv4Header, IPv4HeaderParser},
     transport::udp::{UdpHeader, UdpHeaderParser},
     transport::tcp::{TcpHeader, TcpHeaderParser},
-    netw::ipv6::{IPv6Header, IPv6HeaderParser}
+    netw::ipv6::{IPv6Header, IPv6HeaderParser}, link::arp::{ARPHeader, ARPHeaderParser}
 };
 
 
@@ -59,12 +59,15 @@ pub struct Record {
 
 impl fmt::Display for Record {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let frame = self.parse_ethernet_frame();
+        if frame.is_arp() {
+            return write!(f, "{}\n{}\n{}", self.header, frame, self.parse_arp())
+        }
+        let ip = self.ip_header_to_string(frame.packet_type());
         let mut bytes: String = "".to_string();
         for i in 0..self.data.len() {
             bytes = format!("{} {:02X?}", bytes,  self.data[i])
         }
-        let frame = self.parse_ethernet_frame();
-        let ip = self.ip_header_to_string(frame.packet_type());
         write!(
             f,
             "{}\n{}\n{}\n{}\n{}",
@@ -89,6 +92,14 @@ impl Record {
             parser.put_byte(self.data[i])
         }
         return parser.parse();
+    }
+
+    pub fn parse_arp(&self) -> ARPHeader {
+        let mut parser = ARPHeaderParser::new(false);
+        for i in 14..42 {
+            parser.parse(self.data[i])
+        }
+        return parser.get_header();
     }
 
     pub fn parse_ipv4_header(&self) -> IPv4Header {

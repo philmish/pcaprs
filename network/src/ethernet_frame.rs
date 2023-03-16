@@ -121,6 +121,18 @@ impl EthernetFrame {
     pub fn packet_type(&self) -> PacketType {
         self.p_type.clone()
     }
+
+    pub fn is_arp(&self) -> bool {
+        match self.p_type {
+            PacketType::IPv4 => false,
+            PacketType::IPv6 => false,
+            PacketType::IPX => false,
+            PacketType::ARP => true,
+            PacketType::LENGTH(_) => false,
+            PacketType::UNKNWON => false,
+
+        }
+    }
 }
 
 impl fmt::Display for EthernetFrame {
