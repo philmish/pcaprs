@@ -42,7 +42,13 @@ impl MagicNumber {
 
 impl Display for MagicNumber {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.to_string())
+        let string = match self {
+            Self::PCAP => "PCAP".to_string(),
+            Self::SWAPPED => "PCAP (swapped)".to_string(),
+            Self::PCAPNG => "PCAPNG (not supported)".to_string(),
+            Self::UNKNOWN => "Invalid Magic Number".to_string(),
+        };
+        write!(f, "{}", string)
     }
 }
 
