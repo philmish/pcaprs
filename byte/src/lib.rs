@@ -133,9 +133,6 @@ impl ByteParser {
 
     pub fn qword_as_ipv4(&self) -> Ipv4Addr {
         let tmp = self.qword();
-        if self.b_swap {
-            return Ipv4Addr::new(tmp[3], tmp[2], tmp[1], tmp[0]);
-        }
         return Ipv4Addr::new(tmp[0], tmp[1], tmp[2], tmp[3]);
     }
 
@@ -245,10 +242,48 @@ mod tests {
     }
 
     #[test]
+    fn test_bytes_to_u16() {
+        let cases: &[(u8, u8, bool, u16)] = &[
+            (0xA1, 0xC3, false, 0xA1C3),
+            (0xA1, 0xC3, true, 0xC3A1),
+        ];
+
+        for c in cases {
+            assert_eq!(bytes_to_u16(c.0, c.1, c.2), c.3);
+        }
+    }
+
+    #[test]
+    fn test_bytes_to_u32() {
+        let cases: &[(u8, u8, u8, u8, bool, u32)] = &[
+            (0xA1, 0xB2, 0xC3, 0xD4, false, 0xA1B2C3D4),
+            (0xA1, 0xB2, 0xC3, 0xD4, true, 0xD4C3B2A1),
+        ];
+
+        for c in cases {
+            assert_eq!(bytes_to_u32(c.0, c.1, c.2, c.3, c.4), c.5);
+        }
+    }
+
+    #[test]
     fn test_set_word_for_parser() {
         let mut parser = ByteParser::new(false);
         parser.set_word(1);
         assert_eq!(parser.word(), 1);
+    }
+
+    #[test]
+    fn test_get_word_nibbles() {
+        let cases: &[(u8, u8, u8)] = &[
+            (0xA1, 0x0A, 0x01),
+        ];
+
+        let mut parser = ByteParser::new(false);
+        for c in cases {
+           parser.set_word(c.0);
+           assert_eq!(c.1, parser.word_l_nibble());
+           assert_eq!(c.2, parser.word_r_nibble());
+        }
     }
 
     #[test]
@@ -262,7 +297,10 @@ mod tests {
             let mut parser = ByteParser::new(c.2);
             parser.set_d_byte(c.0);
             parser.set_d_byte(c.1);
+            assert!(parser.dword_done());
             assert_eq!(c.3, parser.dword_as_u16());
+            parser.reset_dword();
+            assert_eq!(0, parser.dword_as_u16());
         }
     }
 
@@ -279,7 +317,28 @@ mod tests {
             parser.set_q_byte(c.1);
             parser.set_q_byte(c.2);
             parser.set_q_byte(c.3);
+            assert!(parser.qword_done());
             assert_eq!(c.5, parser.qword_as_u32());
+            parser.reset_qword();
+            assert_eq!(0, parser.qword_as_u32());
         }
+    }
+
+    #[test]
+    fn test_q_word_as_ipv4() {
+        let cases: &[(u8, u8, u8, u8, bool, Ipv4Addr)] = &[
+            (192, 168, 0, 1, false, Ipv4Addr::new(192, 168, 0, 1)),
+            (1, 0, 168, 192, true, Ipv4Addr::new(192, 168, 0, 1))
+        ];
+
+        for c in cases {
+            let mut parser = ByteParser::new(c.4);
+            parser.set_q_byte(c.0);
+            parser.set_q_byte(c.1);
+            parser.set_q_byte(c.2);
+            parser.set_q_byte(c.3);
+            assert_eq!(c.5, parser.qword_as_ipv4());
+        }
+        
     }
 }
