@@ -52,6 +52,7 @@ impl RowParser {
         Ok(result)
     }
 
+    #[allow(clippy::explicit_counter_loop)]
     pub fn get_nth_row(&self, n: usize) -> Result<[u8;4], &'static str> {
         if n > self.len_rows() {
             Err("Row out of bound.")

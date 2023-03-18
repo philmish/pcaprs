@@ -148,7 +148,7 @@ impl fmt::Display for FileHeader {
         write!(
             f,
             "Magic: {}\nVersion: {}\nSnap Length: {}\nLink: {}\nFCS: {}\n",
-            MagicNumber::from_row(self.magic_number()).to_string(),
+            MagicNumber::from_row(self.magic_number()),
             self.version(),
             self.snap_len(),
             LinkType::new(self.link_type()).to_string(),
