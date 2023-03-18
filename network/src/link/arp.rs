@@ -109,6 +109,22 @@ impl ARPHeader {
             ARPHeaderField::UNSET => println!("Cant set unset ARP Header field"),
         }
     }
+
+    pub fn get_field(&mut self, field: ARPHeaderField) -> ARPHeaderField {
+        match field {
+            ARPHeaderField::MACT(_) => self.mac_type.clone(),
+            ARPHeaderField::PROTT(_) => self.proto_type.clone(),
+            ARPHeaderField::HWS(_) => self.hardware_addr_s.clone(),
+            ARPHeaderField::PAS(_) => self.proto_addr_s.clone(),
+            ARPHeaderField::OP(_) => self.operation.clone(),
+            ARPHeaderField::SRCMAC(_) => self.src_mac.clone(),
+            ARPHeaderField::SRCIP(_) => self.src_ip.clone(),
+            ARPHeaderField::DSTMAC(_) => self.dst_mac.clone(),
+            ARPHeaderField::DSTIP(_) => self.dst_ip.clone(),
+            ARPHeaderField::UNSET => ARPHeaderField::UNSET,
+        }
+
+    }
 }
 
 impl Display for ARPHeader {
@@ -251,3 +267,28 @@ impl ARPHeaderParser {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_set_and_get_header_field() {
+        let mut header = ARPHeader::new();
+        header.set_field(ARPHeaderField::MACT(0xA1B2));
+        assert!(
+            matches!(
+                header.get_field(ARPHeaderField::MACT(0)),
+                ARPHeaderField::MACT(0xA1B2)
+            )
+        );
+
+        header.set_field(ARPHeaderField::PROTT(0xA1B2));
+        assert!(
+            matches!(
+                header.get_field(ARPHeaderField::PROTT(0)),
+                ARPHeaderField::PROTT(0xA1B2)
+            )
+        );
+
+    }
+}
