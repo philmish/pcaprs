@@ -156,3 +156,35 @@ impl fmt::Display for FileHeader {
         )
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_magic_number_swapped() {
+        let mn = MagicNumber::from_row(0xD4C3B2A1);
+        assert!(mn.is_swapped());
+    }
+
+    #[test]
+    fn test_file_header() {
+        let b = vec![
+            0xD4, 0xC3, 0xB2, 0xA1,
+            0x02, 0x00, 0x04, 0x00,
+            0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00,
+            0xFF, 0xFF, 0xFF, 0xFF,
+            0x01, 0x01, 0xFF, 0xFF,
+        ];
+
+        let fh = FileHeader::new(b).unwrap();
+        assert!(fh.is_swapped());
+        assert_eq!(fh.major_version(), 2);
+        assert_eq!(fh.minor_version(), 4);
+        assert_eq!(fh.snap_len(), 0xFFFFFFFF);
+
+    }
+
+}
+
