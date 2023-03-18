@@ -243,4 +243,43 @@ mod tests {
             assert_eq!(c.0.nth_bit_set(c.1), c.2);
         }
     }
+
+    #[test]
+    fn test_set_word_for_parser() {
+        let mut parser = ByteParser::new(false);
+        parser.set_word(1);
+        assert_eq!(parser.word(), 1);
+    }
+
+    #[test]
+    fn test_set_d_word_as_u16() {
+        let cases: &[(u8, u8, bool, u16)] = &[
+            (0xA1, 0xB2, false, 0xA1B2),
+            (0xA1, 0xB2, true, 0xB2A1),
+        ];
+
+        for c in cases {
+            let mut parser = ByteParser::new(c.2);
+            parser.set_d_byte(c.0);
+            parser.set_d_byte(c.1);
+            assert_eq!(c.3, parser.dword_as_u16());
+        }
+    }
+
+    #[test]
+    fn test_set_q_word_as_u32() {
+        let cases: &[(u8, u8, u8, u8, bool, u32)] = &[
+            (0xA1, 0xB2, 0xC3, 0xD4, false, 0xA1B2C3D4),
+            (0xA1, 0xB2, 0xC3, 0xD4, true, 0xD4C3B2A1),
+        ];
+
+        for c in cases {
+            let mut parser = ByteParser::new(c.4);
+            parser.set_q_byte(c.0);
+            parser.set_q_byte(c.1);
+            parser.set_q_byte(c.2);
+            parser.set_q_byte(c.3);
+            assert_eq!(c.5, parser.qword_as_u32());
+        }
+    }
 }
