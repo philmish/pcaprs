@@ -20,7 +20,7 @@ pub struct RecordParser {
 impl RecordParser {
 
     pub fn new(swapped: bool) -> Self {
-        return RecordParser{
+        RecordParser{
             state: ParserState::Header,
             active_header: [0;16],
             active_data: vec![],
@@ -29,7 +29,7 @@ impl RecordParser {
             curr_body_len: 0,
             packets: vec![],
             is_swapped: swapped,
-        };
+        }
     }
 
     fn header_check(&mut self) {
@@ -78,7 +78,7 @@ impl RecordParser {
             self.check_switch();
             self.put_byte(byte);
         }
-        return self.packets.to_vec();
+        self.packets.to_vec()
     }
 }
 
@@ -91,5 +91,5 @@ fn get_vec_from_offset(v: Vec<u8>, n: usize) -> Vec<u8> {
         }
         c += 1;
     }).collect();
-    return res;
+    res
 }

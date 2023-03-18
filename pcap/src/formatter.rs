@@ -10,19 +10,19 @@ pub trait Row {
 impl Row for [u8;4] {
     
     fn as_u32(&self) -> u32 {
-        return self[0].to_u32(self[1], self[2], self[3]);
+        self[0].to_u32(self[1], self[2], self[3])
     }
 
     fn l_half_u16(&self) -> u16 {
-        return self[0].to_u16(self[1]);
+        self[0].to_u16(self[1])
     }
 
     fn r_half_u16(&self) -> u16 {
-        return self[2].to_u16(self[3]);
+        self[2].to_u16(self[3])
     }
 
     fn swapped_copy(&self) -> Self {
-        return [self[3], self[2], self[1], self[0]]
+        [self[3], self[2], self[1], self[0]]
     }
 }
 
@@ -34,7 +34,7 @@ pub struct RowParser {
 impl RowParser {
     
     pub fn new(stream: Vec<u8>) -> Self {
-        return Self{stream, loaded_row: [0;4]};
+        Self{stream, loaded_row: [0;4]}
     }
 
     pub fn range_to_bytestream(&self, start: usize, end: usize) -> Result<Vec<u8>, &'static str> {
@@ -49,12 +49,12 @@ impl RowParser {
                 result.push(tmp_row[j]);
             }
         }
-        return Ok(result);
+        Ok(result)
     }
 
     pub fn get_nth_row(&self, n: usize) -> Result<[u8;4], &'static str> {
         if n > self.len_rows() {
-            return Err("Row out of bound.")
+            Err("Row out of bound.")
         } else {
             let start = n * 4;
             let end = start + 4;
@@ -65,7 +65,7 @@ impl RowParser {
                 result[pos] = item;
                 pos += 1;
             }
-            return Ok(result);
+            Ok(result)
         }
     }
 
@@ -77,35 +77,35 @@ impl RowParser {
     }
 
     pub fn len_rows(&self) -> usize {
-        return self.stream.len() / 4;
+        self.stream.len() / 4
     }
 
     pub fn loaded_as_u32(&self) -> u32 {
-        return self.loaded_row.as_u32();
+        self.loaded_row.as_u32()
     }
 
     pub fn loaded_l_half(&self) -> u16 {
-        return self.loaded_row.l_half_u16();
+        self.loaded_row.l_half_u16()
     }
 
     pub fn loaded_r_half(&self) -> u16 {
-        return self.loaded_row.r_half_u16();
+        self.loaded_row.r_half_u16()
     }
 
     pub fn get_nth_loaded_byte(&self, n: usize) -> u8 {
         if n <= 3 {
-            return self.loaded_row[n];
+            self.loaded_row[n]
         } else {
             panic!("Invalid index to take nth item of loaded row")
         }
     }
 
     pub fn l_nib_loaded_nth(&self, n: usize ) -> u8 {
-        return self.get_nth_loaded_byte(n).l_nibble();
+        self.get_nth_loaded_byte(n).l_nibble()
     }
 
     pub fn r_nib_loaded_nth(&self, n: usize ) -> u8 {
-        return self.get_nth_loaded_byte(n).r_nibble();
+        self.get_nth_loaded_byte(n).r_nibble()
     }
 }
 

@@ -95,11 +95,11 @@ impl FileHeader {
             }
             c += 1;
         }).collect();
-        return Ok(Self { bytes: data });
+        Ok(Self { bytes: data })
     }
 
     pub fn is_swapped(&self) -> bool {
-        return self.magic_number() == 0xd4c3b2a1;
+        self.magic_number() == 0xd4c3b2a1
     }
 
     fn magic_number(&self) -> u32 {
@@ -115,7 +115,7 @@ impl FileHeader {
     }
 
     pub fn version(&self) -> String {
-       format!("{}.{}", self.major_version(), self.minor_version()).to_string()
+       format!("{}.{}", self.major_version(), self.minor_version())
     }
 
     fn snap_len(&self) -> u32 {
@@ -132,9 +132,9 @@ impl FileHeader {
 
     fn fcs(&self) -> u8 {
         if self.is_swapped() {
-            return self.bytes[23].l_nibble();
+            self.bytes[23].l_nibble()
         } else {
-            return self.bytes[20].l_nibble();
+            self.bytes[20].l_nibble()
         }
     }
 }

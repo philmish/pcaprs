@@ -13,7 +13,7 @@ pub struct App {
 }
 
 fn read_file(f_name: String) -> File {
-    return File::open(f_name).unwrap();
+    File::open(f_name).unwrap()
 }
 
 impl App {
@@ -25,10 +25,10 @@ impl App {
         let file_h = FileHeader::new(bytes.to_vec()).unwrap();
         let mut parser = RecordParser::new(file_h.is_swapped());
         let records = parser.parse_records(bytes.to_vec(), 24);
-        return Self{
+        Self{
             header: file_h,
             records
-        };
+        }
     }
 
     pub fn show_header(&mut self) {

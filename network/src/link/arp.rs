@@ -43,9 +43,9 @@ impl Clone for ARPHeaderField {
             Self::PAS(b) => Self::PAS(*b),
             Self::OP(b) => Self::OP(*b),
             Self::SRCMAC(b) => Self::SRCMAC(b.clone()),
-            Self::SRCIP(b) => Self::SRCIP(b.clone()),
+            Self::SRCIP(b) => Self::SRCIP(*b),
             Self::DSTMAC(b) => Self::DSTMAC(b.clone()),
-            Self::DSTIP(b) => Self::DSTIP(b.clone()),
+            Self::DSTIP(b) => Self::DSTIP(*b),
             Self::UNSET => Self::UNSET,
         }
     }
@@ -67,7 +67,7 @@ pub struct ARPHeader {
 impl ARPHeader {
     
     pub fn new() -> Self {
-        return Self { 
+        Self { 
             mac_type: ARPHeaderField::UNSET, 
             proto_type: ARPHeaderField::UNSET,
             hardware_addr_s: ARPHeaderField::UNSET,
@@ -88,9 +88,9 @@ impl ARPHeader {
             self.hardware_addr_s,
             self.proto_addr_s,
             self.operation,
-            self.src_mac.to_string(),
+            self.src_mac,
             self.src_ip,
-            self.dst_mac.to_string(),
+            self.dst_mac,
             self.dst_ip,
         )
     }
@@ -143,7 +143,7 @@ pub struct ARPHeaderParser {
 impl ARPHeaderParser {
 
     pub fn new(swap: bool) -> Self {
-        return Self {
+        Self {
             b_parser: ByteParser::new(swap),
             m_parser: MacAddressParser::new(), 
             curr_field: ARPHeaderField::MACT(0),
@@ -187,7 +187,7 @@ impl ARPHeaderParser {
     }
 
     pub fn get_header(&self) -> ARPHeader {
-        return self.header.clone();
+        self.header.clone()
     }
 
     fn mac_type(&mut self) {

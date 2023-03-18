@@ -9,11 +9,11 @@ pub struct MacAddress {
 impl MacAddress {
     
     pub fn new(bytes: [u8;6]) -> Self {
-        return Self { bytes }
+        Self { bytes }
     }
 
     pub fn empty() -> Self {
-        return Self{ bytes: [0;6]  };
+        Self{ bytes: [0;6]  }
     }
 
     pub fn set_octet(&mut self, b: u8, idx: usize) {
@@ -100,11 +100,11 @@ pub struct EthernetFrame {
 impl EthernetFrame {
 
     pub fn new(dest: MacAddress, src: MacAddress, p_type: PacketType) -> Self {
-        return Self{
+        Self{
             dest,
             src,
             p_type
-        };
+        }
     }
 
     pub fn is_802_3(&self) -> bool {
@@ -174,13 +174,13 @@ pub struct EthernetFrameParser {
 impl EthernetFrameParser {
 
     pub fn new() -> Self {
-        return Self{
+        Self{
             dest: MacAddress::empty(),
             src: MacAddress::empty(),
             p_type: [0;2],
             curr_pos: 0,
             state: ParserState::DEST,
-        };
+        }
     }
 
     fn put_d_byte(&mut self, b: u8) {
@@ -211,7 +211,7 @@ impl EthernetFrameParser {
     }
 
     pub fn parse(&self) -> EthernetFrame {
-        return EthernetFrame::new(
+        EthernetFrame::new(
             self.dest.clone(),
             self.src.clone(),
             PacketType::new(
@@ -221,7 +221,7 @@ impl EthernetFrameParser {
                     false,
                 )
             )
-        );
+        )
     }
 }
 

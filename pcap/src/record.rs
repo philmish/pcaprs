@@ -31,7 +31,7 @@ impl fmt::Display for RecordHeader {
 impl RecordHeader {
     
     pub fn new(data: [u8;16], is_swapped: bool) -> Self {
-        return Self{data, is_swapped};
+        Self{data, is_swapped}
     }
 
     fn ts_sec(&self) -> u32 {
@@ -83,7 +83,7 @@ impl fmt::Display for Record {
 impl Record {
 
     pub fn new(header: RecordHeader, data: Vec<u8>) -> Self {
-        return Self{header, data}; 
+        Self{header, data} 
     }
 
     pub fn parse_ethernet_frame(&self) -> EthernetFrame {
@@ -91,7 +91,7 @@ impl Record {
         for i in 0..14 {
             parser.put_byte(self.data[i])
         }
-        return parser.parse();
+        parser.parse()
     }
 
     pub fn parse_arp(&self) -> ARPHeader {
@@ -99,7 +99,7 @@ impl Record {
         for i in 14..42 {
             parser.parse(self.data[i])
         }
-        return parser.get_header();
+        parser.get_header()
     }
 
     pub fn parse_ipv4_header(&self) -> IPv4Header {
@@ -108,7 +108,7 @@ impl Record {
         for i in 15..34 {
             parser.step(self.data[i])
         }
-        return parser.get_header();
+        parser.get_header()
     }
 
     pub fn parse_ipv6_header(&self) -> IPv6Header {
@@ -116,17 +116,17 @@ impl Record {
         for i in 14..54 {
             parser.parse(self.data[i])
         }
-        return parser.get_header();
+        parser.get_header()
     }
 
     pub fn ip_header_to_string(&self, t: PacketType) -> String {
         match t {
             PacketType::IPv4 => format!("{}", self.parse_ipv4_header()),
             PacketType::IPv6 => format!("{}", self.parse_ipv6_header()),
-            PacketType::ARP => format!("ARP Header parsing not implemented"),
-            PacketType::IPX => format!("IPX Header parsing not implemented"),
+            PacketType::ARP => "ARP Header parsing not implemented".to_string(),
+            PacketType::IPX => "IPX Header parsing not implemented".to_string(),
             PacketType::LENGTH(b) => format!("IEEE 802.3 Header parsing not implemented (length: {})", b),
-            PacketType::UNKNWON => format!("UNKNWON ip header type encountered"),
+            PacketType::UNKNWON => "UNKNWON ip header type encountered".to_string(),
 
         }
     }
@@ -136,7 +136,7 @@ impl Record {
         for i in 34..43 {
             parser.parse(self.data[i])
         }
-        return parser.get_header();
+        parser.get_header()
     }
 
     pub fn parse_tcp_header(&self) -> TcpHeader {
@@ -144,6 +144,6 @@ impl Record {
         for i in  34..54 {
             parser.parse(self.data[i])
         }
-        return parser.get_header();
+        parser.get_header()
     }
 }

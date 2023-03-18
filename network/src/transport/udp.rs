@@ -51,7 +51,7 @@ impl Display for UdpHeader {
 impl UdpHeader {
 
     pub fn new() -> Self {
-        return UdpHeader {
+        UdpHeader {
             src: UdpHeaderField::UNSET,
             dst: UdpHeaderField::UNSET, 
             len: UdpHeaderField::UNSET,
@@ -79,11 +79,11 @@ pub struct UdpHeaderParser {
 impl UdpHeaderParser {
     
     pub fn new(swap: bool) -> Self {
-        return Self{
+        Self{
             parser: ByteParser::new(swap),
             curr_field: UdpHeaderField::SRC(0),
             header: UdpHeader::new(),
-        };
+        }
     }
 
     pub fn parse(&mut self, b: u8) {

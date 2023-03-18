@@ -92,18 +92,18 @@ impl IPv4Header {
 
     pub fn set_field(&mut self, field: IPv4HeaderField) {
         match field {
-            IPv4HeaderField::V(_) => self.version = field.clone(),
-            IPv4HeaderField::IHL(_) => self.ihl = field.clone(),
-            IPv4HeaderField::TOS(_) => self.tos = field.clone(),
-            IPv4HeaderField::LEN(_) => self.length = field.clone(),
-            IPv4HeaderField::ID(_) => self.id = field.clone(),
-            IPv4HeaderField::FF(_) => self.ff = field.clone(),
+            IPv4HeaderField::V(_) => self.version = field,
+            IPv4HeaderField::IHL(_) => self.ihl = field,
+            IPv4HeaderField::TOS(_) => self.tos = field,
+            IPv4HeaderField::LEN(_) => self.length = field,
+            IPv4HeaderField::ID(_) => self.id = field,
+            IPv4HeaderField::FF(_) => self.ff = field,
             IPv4HeaderField::TTL(_) => self.ttl = field,
             IPv4HeaderField::PRT(_) => self.proto = field,
             IPv4HeaderField::CHECK(_) => self.checksum = field,
             IPv4HeaderField::SRC(_) => self.src = field,
             IPv4HeaderField::DST(_) => self.dst = field,
-            IPv4HeaderField::UNSET => return,
+            IPv4HeaderField::UNSET => (),
         }
     }
 }
@@ -138,16 +138,16 @@ pub struct IPv4HeaderParser {
 impl IPv4HeaderParser {
 
     pub fn new(b_swap: bool) -> Self {
-        return Self{
+        Self{
             parser: ByteParser::new(b_swap),
             curr_state: IPv4HeaderField::V(0),
             header: IPv4Header::empty(),
-        };
+        }
     }
 
     fn set_byte(&mut self, b: u8) {
         match self.curr_state {
-            IPv4HeaderField::IHL(_) => println!(""),
+            IPv4HeaderField::IHL(_) => println!(),
             IPv4HeaderField::V(_)|
                 IPv4HeaderField::TOS(_)|
                 IPv4HeaderField::TTL(_)|
@@ -170,7 +170,7 @@ impl IPv4HeaderParser {
         self.set_byte(b);
         match self.curr_state {
             IPv4HeaderField::V(_) => self.version(),
-            IPv4HeaderField::IHL(_) => return,
+            IPv4HeaderField::IHL(_) => (),
             IPv4HeaderField::TOS(_) => self.tos(),
             IPv4HeaderField::LEN(_) => self.length(),
             IPv4HeaderField::ID(_) => self.id(),
@@ -278,6 +278,6 @@ impl IPv4HeaderParser {
     }
 
     pub fn get_header(&self) -> IPv4Header {
-        return self.header.clone();
+        self.header.clone()
     }
 }

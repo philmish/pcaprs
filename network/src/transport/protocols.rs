@@ -57,7 +57,7 @@ impl TransportProtocol {
 
 impl Display for TransportProtocol {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Protocol: {}", self.to_string())
+        write!(f, "Protocol: {}", self)
     }
 }
 

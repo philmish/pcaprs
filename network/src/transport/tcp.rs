@@ -45,7 +45,7 @@ impl TcpHeaderField {
             Self::WSIZE(b) => format!("{}", b),
             Self::CHECK(b) => format!("{}", b),
             Self::UPOINT(b) => format!("{}", b),
-            Self::UNSET => format!("UNSET"),
+            Self::UNSET => "UNSET".to_string(),
 
         }
     }
@@ -86,7 +86,7 @@ impl Display for TcpHeader {
 impl TcpHeader {
     
     pub fn new() -> Self {
-        return Self{
+        Self{
             src: TcpHeaderField::UNSET,
             dst: TcpHeaderField::UNSET,
             seq: TcpHeaderField::UNSET,
@@ -96,7 +96,7 @@ impl TcpHeader {
             wsize: TcpHeaderField::UNSET,
             check: TcpHeaderField::UNSET,
             upoint: TcpHeaderField::UNSET,
-        };
+        }
     }
 
     pub fn set_field(&mut self, field: TcpHeaderField) {
@@ -124,7 +124,7 @@ pub struct TcpHeaderParser {
 impl TcpHeaderParser {
     
     pub fn new(_swap: bool) -> Self {
-        return Self { 
+        Self { 
             parser: ByteParser::new(false),
             curr_field: TcpHeaderField::SRC(0),
             header: TcpHeader::new()
@@ -132,7 +132,7 @@ impl TcpHeaderParser {
     }
 
     pub fn get_header(&self) -> TcpHeader {
-        return self.header.clone();
+        self.header.clone()
     }
 
     fn step(&mut self, b: u8) {

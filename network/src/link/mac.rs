@@ -6,22 +6,22 @@ pub struct MacAddress {
 
 impl Clone for MacAddress {
     fn clone(&self) -> Self {
-        return MacAddress::new(self.bytes)
+        MacAddress::new(self.bytes)
     }
 }
 
 impl MacAddress {
 
     pub fn empty() -> Self {
-        return Self{bytes: [0;6]};
+        Self{bytes: [0;6]}
     }
 
     pub fn new(bytes: [u8;6]) -> Self {
-        return Self{bytes};
+        Self{bytes}
     }
 
     pub fn to_string(&self) -> String {
-        return format!(
+        format!(
             "{:02X?}:{:02X?}:{:02X?}:{:02X?}:{:02X?}:{:02X?}",
             self.bytes[0],
             self.bytes[1],
@@ -29,7 +29,7 @@ impl MacAddress {
             self.bytes[3],
             self.bytes[4],
             self.bytes[5],
-        );
+        )
     }
 }
 
@@ -47,20 +47,19 @@ pub struct MacAddressParser {
 impl MacAddressParser {
     
     pub fn new() -> Self {
-        return Self{
+        Self{
             buf: [0;6],
             pos: 0,
-        };
+        }
     }
 
     pub fn done(&self) -> bool {
-        return self.pos == 6;
+        self.pos == 6
     }
 
     pub fn set_byte(&mut self, b: u8) {
         if self.done() {
             println!("Mac Address buffer full");
-            return;
         } else {
             self.buf[self.pos] = b;
             self.pos += 1;
@@ -68,7 +67,7 @@ impl MacAddressParser {
     }
 
     pub fn get_adress(&self) -> MacAddress {
-        return MacAddress::new(self.buf);
+        MacAddress::new(self.buf)
     }
 
     pub fn reset(&mut self) {

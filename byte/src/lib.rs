@@ -11,22 +11,22 @@ pub trait Byte {
 impl Byte for u8 {
 
     fn to_u16(&self, b: Self) -> u16 {
-        return ((*self as u16) << 8) | b as u16;
+        ((*self as u16) << 8) | b as u16
     }
 
     fn to_u32(&self, b: Self, c: Self, d: Self) -> u32 {
-        return ((*self as u32) << 24) +
+        ((*self as u32) << 24) +
         ((b as u32) << 16) +
         ((c as u32) << 8) +
-        ((d as u32) << 0)
+        (d as u32)
     }
 
     fn r_nibble(&self) -> u8 {
-        return self & 0b1111;
+        self & 0b1111
     }
 
     fn l_nibble(&self) -> u8 {
-        return self >> 4;
+        self >> 4
     }
 
     fn nth_bit_set(&self, pos: u8) -> bool {
@@ -35,7 +35,7 @@ impl Byte for u8 {
                 return 1 == self >> n & 1
             }
         }
-        return false;
+        false
     }
 }
 
@@ -44,12 +44,12 @@ pub fn bytes_to_u32(a: u8, b: u8, c: u8, d: u8, swapped: bool) -> u32 {
         ((d as u32) << 24) +
         ((c as u32) << 16) +
         ((b as u32) << 8) +
-        ((a as u32) << 0)
+        (a as u32)
     } else {
         ((a as u32) << 24) +
         ((b as u32) << 16) +
         ((c as u32) << 8) +
-        ((d as u32) << 0)
+        (d as u32)
     }
 }
 
@@ -74,7 +74,7 @@ pub struct ByteParser {
 impl ByteParser {
 
     pub fn new(b_swap: bool) -> Self {
-        return Self{
+        Self{
             curr_word: 0,
             curr_dword: [0;2],
             d_pos: 0,
@@ -85,7 +85,7 @@ impl ByteParser {
     }
 
     pub fn word(&self) -> u8 {
-        return self.curr_word.clone();
+        self.curr_word
     }
 
     pub fn set_word(&mut self, b: u8) {
@@ -93,11 +93,11 @@ impl ByteParser {
     }
 
     pub fn word_l_nibble(&self) -> u8 {
-        return self.curr_word.l_nibble();
+        self.curr_word.l_nibble()
     }
 
     pub fn word_r_nibble(&self) -> u8 {
-        return self.curr_word.r_nibble();
+        self.curr_word.r_nibble()
     }
 
     pub fn toggle_swap(&mut self) {
@@ -109,31 +109,31 @@ impl ByteParser {
     }
 
     pub fn dword_as_u16(&self) -> u16 {
-        return bytes_to_u16(self.curr_dword[0], self.curr_dword[1], self.b_swap);
+        bytes_to_u16(self.curr_dword[0], self.curr_dword[1], self.b_swap)
     }
 
     pub fn qword(&self) -> [u8;4] {
-        let tmp = self.curr_qword.clone();
+        let tmp = self.curr_qword;
         if self.b_swap {
-            return [tmp[3],tmp[2],tmp[1], tmp[0]];
+            [tmp[3],tmp[2],tmp[1], tmp[0]]
         } else {
-            return tmp;
+            tmp
         }
     }
 
     pub fn qword_as_u32(&self) -> u32 {
-        return bytes_to_u32(
+        bytes_to_u32(
             self.curr_qword[0],
             self.curr_qword[1],
             self.curr_qword[2],
             self.curr_qword[3],
             self.b_swap
-        );
+        )
     }
 
     pub fn qword_as_ipv4(&self) -> Ipv4Addr {
         let tmp = self.qword();
-        return Ipv4Addr::new(tmp[0], tmp[1], tmp[2], tmp[3]);
+        Ipv4Addr::new(tmp[0], tmp[1], tmp[2], tmp[3])
     }
 
     pub fn qword_done(&self) -> bool {
@@ -143,11 +143,9 @@ impl ByteParser {
     pub fn set_q_byte(&mut self, b: u8) {
         if self.q_pos >= 4 {
             println!("QWord full.");
-            return;
         } else {
             self.curr_qword[self.q_pos] = b;
             self.q_pos += 1;
-            return;
         }
     }
 
@@ -159,11 +157,9 @@ impl ByteParser {
     pub fn set_d_byte(&mut self, b: u8) {
         if self.d_pos >= 2 {
             println!("DWord full.");
-            return;
         } else {
             self.curr_dword[self.d_pos] = b;
             self.d_pos += 1;
-            return;
         }
     }
 

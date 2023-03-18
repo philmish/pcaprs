@@ -12,7 +12,7 @@ pub struct Ipv6AddressParser {
 impl Ipv6AddressParser {
     
     fn new() -> Self {
-        return Self { buf: [0;8], pos: 0 }
+        Self { buf: [0;8], pos: 0 }
     }
 
     fn done(&self) -> bool {
@@ -118,7 +118,7 @@ impl Display for IPv6Header {
 impl IPv6Header {
 
     pub fn new() -> Self {
-        return Self{
+        Self{
             version: IPv6HeaderField::UNSET,
             flow: IPv6HeaderField::UNSET,
             length: IPv6HeaderField::UNSET,
@@ -126,7 +126,7 @@ impl IPv6Header {
             hop_len: IPv6HeaderField::UNSET,
             source: IPv6HeaderField::UNSET,
             destination: IPv6HeaderField::UNSET,
-        };
+        }
     }
 
     pub fn set_field(&mut self, field: IPv6HeaderField) {
@@ -153,12 +153,12 @@ pub struct IPv6HeaderParser {
 impl IPv6HeaderParser {
     
     pub fn new(swap: bool) -> Self {
-        return Self{
+        Self{
             b_parser: ByteParser::new(swap),
             a_parser: Ipv6AddressParser::new(),
             curr_field: IPv6HeaderField::V(0),
             header: IPv6Header::new()
-        };
+        }
     }
 
     pub fn parse(&mut self, b: u8) {
@@ -176,7 +176,7 @@ impl IPv6HeaderParser {
     }
 
     pub fn get_header(&self) -> IPv6Header {
-        return self.header.clone();
+        self.header.clone()
     }
 
     fn step(&mut self, b: u8) {
