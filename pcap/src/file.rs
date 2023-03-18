@@ -29,15 +29,6 @@ impl MagicNumber {
             Self::UNKNOWN => false,
         }
     }
-
-    fn to_string(&self) -> String {
-        match self {
-            Self::PCAP => "PCAP".to_string(),
-            Self::SWAPPED => "PCAP (swapped)".to_string(),
-            Self::PCAPNG => "PCAPNG (not supported)".to_string(),
-            Self::UNKNOWN => "Invalid Magic Number".to_string(),
-        }
-    }
 }
 
 impl Display for MagicNumber {
