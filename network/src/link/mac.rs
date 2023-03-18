@@ -75,3 +75,34 @@ impl MacAddressParser {
         self.pos = 0;
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_mac_address() {
+        let empty = MacAddress::empty();
+        assert_eq!("00:00:00:00:00:00".to_string(), empty.to_string());
+
+        let addr = MacAddress::new([0xDE, 0xAD, 0xBE, 0xEF, 0x00, 0x00]);
+        assert_eq!("DE:AD:BE:EF:00:00".to_string(), addr.to_string());
+    }
+
+    #[test]
+    fn test_mac_address_parser() {
+        let mut parser = MacAddressParser::new();
+        let b = [0xDE, 0xAD, 0xBE, 0xEF, 0x00, 0x00];
+
+        for i in b {
+            parser.set_byte(i);
+        }
+        assert!(parser.done());
+        let addr = MacAddress::new([0xDE, 0xAD, 0xBE, 0xEF, 0x00, 0x00]);
+        assert_eq!(addr.to_string(), parser.get_adress().to_string());
+        parser.reset();
+        assert!(!parser.done());
+        assert_eq!("00:00:00:00:00:00", parser.get_adress().to_string());
+    }
+
+}
