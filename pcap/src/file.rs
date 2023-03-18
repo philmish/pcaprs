@@ -1,4 +1,5 @@
 use core::fmt;
+use std::fmt::Display;
 
 use byte::{Byte, bytes_to_u32, bytes_to_u16};
 
@@ -36,6 +37,12 @@ impl MagicNumber {
             Self::PCAPNG => "PCAPNG (not supported)".to_string(),
             Self::UNKNOWN => "Invalid Magic Number".to_string(),
         }
+    }
+}
+
+impl Display for MagicNumber {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.to_string())
     }
 }
 
