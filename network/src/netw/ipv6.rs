@@ -141,6 +141,20 @@ impl IPv6Header {
             IPv6HeaderField::UNSET => println!("Cant set unset field in Ipv6 header")
         }
     }
+
+    pub fn get_field(&self, field: IPv6HeaderField) -> IPv6HeaderField {
+        match field {
+            IPv6HeaderField::V(_) => self.version.clone(),
+            IPv6HeaderField::FLOW(_) => self.flow.clone(),
+            IPv6HeaderField::LEN(_) => self.length.clone(),
+            IPv6HeaderField::PRT(_) => self.proto.clone(),
+            IPv6HeaderField::HOPL(_) => self.hop_len.clone(),
+            IPv6HeaderField::SRC(_) => self.source.clone(),
+            IPv6HeaderField::DST(_) => self.destination.clone(),
+            IPv6HeaderField::UNSET => IPv6HeaderField::UNSET,
+        }
+
+    }
 }
 
 pub struct IPv6HeaderParser {
@@ -262,3 +276,20 @@ impl IPv6HeaderParser {
 }
 
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_ipv6_addr_parser() {
+        let bytes: [u16;8] = [0,0,0,0,0,0,0,1];
+        let mut parser = Ipv6AddressParser::new();
+        for i in bytes {
+            parser.set_bytes(i)
+        }
+        assert!(parser.done());
+        let addr = parser.get_address();
+        assert_eq!("::1".parse(), Ok(addr));
+        assert!(addr.is_loopback());
+    }
+}

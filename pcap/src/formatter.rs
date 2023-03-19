@@ -155,5 +155,23 @@ mod tests {
         assert_eq!(parser.loaded_as_u32(), 0xA1A1A1A1);
         assert_eq!(parser.r_nib_loaded_nth(0), 1);
         assert_eq!(parser.l_nib_loaded_nth(0), 10);
+
+        parser.load_row(1, false);
+        assert_eq!(parser.loaded_l_half(), 0xB1B1);
+        assert_eq!(parser.loaded_r_half(), 0xB1B1);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_loaded_byte_out_of_bounds_panics() {
+        let stream: Vec<u8> = vec![
+            0xA1, 0xA1, 0xA1, 0xA1,
+            0xB1, 0xB1, 0xB1, 0xB1,
+            0xC1, 0xC1, 0xC1, 0xC1,
+            0xD1, 0xD1, 0xD1, 0xD1,
+        ];
+        let mut parser = RowParser::new(stream);
+        parser.load_row(0, false);
+        parser.get_nth_loaded_byte(5);
     }
 }

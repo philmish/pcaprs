@@ -80,3 +80,21 @@ impl Clone for TransportProtocol {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_new_transport_proto() {
+        let cases: &[(u8, TransportProtocol)] = &[
+            (0, TransportProtocol::IPv6HopByHop),
+            (1, TransportProtocol::IPv6HopByHop),
+        ];
+        
+
+        for c in cases {
+        }
+    }
+
+}
