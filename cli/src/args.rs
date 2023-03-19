@@ -30,3 +30,15 @@ impl Args {
         Self::parse()
     } 
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_args() {
+        let args = Args{file: "test.file".to_string(), idx: 2, };
+        assert_eq!(args.f_name(), "test.file".to_string());
+        assert_eq!(args.index(), 2);
+    }
+}

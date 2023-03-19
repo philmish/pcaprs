@@ -236,12 +236,14 @@ mod tests {
         assert!(matches!(PacketType::new(0x0806), PacketType::ARP));
         assert!(matches!(PacketType::new(0x8137), PacketType::IPX));
         assert!(matches!(PacketType::new(0x86dd), PacketType::IPv6));
+        assert!(matches!(PacketType::new(1500), PacketType::LENGTH(1500)));
         assert!(matches!(PacketType::new(0xAAAA), PacketType::UNKNWON));
 
         assert!(matches!(PacketType::IPv4.clone(), PacketType::IPv4));
         assert!(matches!(PacketType::ARP.clone(), PacketType::ARP));
         assert!(matches!(PacketType::IPX.clone(), PacketType::IPX));
         assert!(matches!(PacketType::IPv6.clone(), PacketType::IPv6));
+        assert!(matches!(PacketType::LENGTH(1500).clone(), PacketType::LENGTH(1500)));
         assert!(matches!(PacketType::UNKNWON.clone(), PacketType::UNKNWON));
 
     }

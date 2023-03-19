@@ -262,6 +262,16 @@ mod tests {
     }
 
     #[test]
+    fn test_parser_toggle_swap() {
+        let mut parser = ByteParser::new(false);
+        parser.toggle_swap();
+        assert!(parser.b_swap);
+        parser.toggle_swap();
+        assert_eq!(parser.b_swap, false);
+
+    }
+
+    #[test]
     fn test_set_word_for_parser() {
         let mut parser = ByteParser::new(false);
         parser.set_word(1);
@@ -295,6 +305,7 @@ mod tests {
             parser.set_d_byte(c.1);
             assert!(parser.dword_done());
             assert_eq!(c.3, parser.dword_as_u16());
+            parser.set_d_byte(2);
             parser.reset_dword();
             assert_eq!(0, parser.dword_as_u16());
         }
@@ -315,6 +326,7 @@ mod tests {
             parser.set_q_byte(c.3);
             assert!(parser.qword_done());
             assert_eq!(c.5, parser.qword_as_u32());
+            parser.set_q_byte(2);
             parser.reset_qword();
             assert_eq!(0, parser.qword_as_u32());
         }
