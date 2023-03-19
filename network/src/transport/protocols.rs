@@ -87,14 +87,40 @@ mod tests {
 
     #[test]
     fn test_new_transport_proto() {
-        let cases: &[(u8, TransportProtocol)] = &[
-            (0, TransportProtocol::IPv6HopByHop),
-            (1, TransportProtocol::IPv6HopByHop),
-        ];
-        
 
-        for c in cases {
-        }
+        assert!(matches!(TransportProtocol::new(0), TransportProtocol::IPv6HopByHop));
+        assert!(matches!(TransportProtocol::new(1), TransportProtocol::ICMP));
+        assert!(matches!(TransportProtocol::new(2), TransportProtocol::IGMP));
+        assert!(matches!(TransportProtocol::new(3), TransportProtocol::GGP));
+        assert!(matches!(TransportProtocol::new(4), TransportProtocol::IPinIP));
+        assert!(matches!(TransportProtocol::new(5), TransportProtocol::ST));
+        assert!(matches!(TransportProtocol::new(6), TransportProtocol::TCP));
+        assert!(matches!(TransportProtocol::new(7), TransportProtocol::CBT));
+        assert!(matches!(TransportProtocol::new(8), TransportProtocol::EGP));
+        assert!(matches!(TransportProtocol::new(9), TransportProtocol::IGP));
+        assert!(matches!(TransportProtocol::new(11), TransportProtocol::NVP2));
+        assert!(matches!(TransportProtocol::new(17), TransportProtocol::UDP));
+        assert!(matches!(TransportProtocol::new(18), TransportProtocol::UNKNOWN(18)));
+        
+    }
+
+    #[test]
+    fn test_clone_transport_proto() {
+
+        assert!(matches!(TransportProtocol::IPv6HopByHop.clone(), TransportProtocol::IPv6HopByHop));
+        assert!(matches!(TransportProtocol::ICMP.clone(), TransportProtocol::ICMP));
+        assert!(matches!(TransportProtocol::IGMP.clone(), TransportProtocol::IGMP));
+        assert!(matches!(TransportProtocol::GGP.clone(), TransportProtocol::GGP));
+        assert!(matches!(TransportProtocol::IPinIP.clone(), TransportProtocol::IPinIP));
+        assert!(matches!(TransportProtocol::ST.clone(), TransportProtocol::ST));
+        assert!(matches!(TransportProtocol::TCP.clone(), TransportProtocol::TCP));
+        assert!(matches!(TransportProtocol::CBT.clone(), TransportProtocol::CBT));
+        assert!(matches!(TransportProtocol::EGP.clone(), TransportProtocol::EGP));
+        assert!(matches!(TransportProtocol::IGP.clone(), TransportProtocol::IGP));
+        assert!(matches!(TransportProtocol::NVP2.clone(), TransportProtocol::NVP2));
+        assert!(matches!(TransportProtocol::UDP.clone(), TransportProtocol::UDP));
+        assert!(matches!(TransportProtocol::UNKNOWN(18).clone(), TransportProtocol::UNKNOWN(18)));
+        
     }
 
 }

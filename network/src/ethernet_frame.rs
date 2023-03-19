@@ -225,3 +225,36 @@ impl EthernetFrameParser {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_packet_type_enum() {
+
+        assert!(matches!(PacketType::new(0x0800), PacketType::IPv4));
+        assert!(matches!(PacketType::new(0x0806), PacketType::ARP));
+        assert!(matches!(PacketType::new(0x8137), PacketType::IPX));
+        assert!(matches!(PacketType::new(0x86dd), PacketType::IPv6));
+        assert!(matches!(PacketType::new(0xAAAA), PacketType::UNKNWON));
+
+        assert!(matches!(PacketType::IPv4.clone(), PacketType::IPv4));
+        assert!(matches!(PacketType::ARP.clone(), PacketType::ARP));
+        assert!(matches!(PacketType::IPX.clone(), PacketType::IPX));
+        assert!(matches!(PacketType::IPv6.clone(), PacketType::IPv6));
+        assert!(matches!(PacketType::UNKNWON.clone(), PacketType::UNKNWON));
+
+    }
+
+    #[test]
+    fn test_parser_state_enum() {
+
+        let state = ParserState::T;
+        assert!(matches!(state.step(0), ParserState::DEST));
+        assert!(matches!(state.step(7), ParserState::SRC));
+        assert!(matches!(state.step(13), ParserState::T));
+        assert!(matches!(state.step(14), ParserState::END));
+
+    }
+}
+

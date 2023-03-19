@@ -147,3 +147,24 @@ impl Record {
         parser.get_header()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_record_header() {
+        let bytes: [u8;16] = [
+            0x00, 0x00, 0x00, 0x01,
+            0x00, 0x00, 0x00, 0x02,
+            0x00, 0x00, 0x00, 0xAA,
+            0x00, 0x00, 0x00, 0xAA,
+        ];
+        let unswapped_rh = RecordHeader::new(bytes, false);
+        assert_eq!(unswapped_rh.ts_sec(), 0x00000001);
+        assert_eq!(unswapped_rh.ts_ms_or_ns(), 0x00000002);
+        assert_eq!(unswapped_rh.cap_len(), 0x000000AA);
+        assert_eq!(unswapped_rh.packet_len(), 0x000000AA);
+    }
+}
+
