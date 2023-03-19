@@ -256,5 +256,26 @@ mod tests {
         assert!(matches!(state.step(14), ParserState::END));
 
     }
+
+    #[test]
+    fn test_parser() {
+        let mut parser = EthernetFrameParser::new();
+        let bytes: [u8;14] = [
+            0xA1, 0xA1, 0xA1, 0xA1,
+            0xA1, 0xA1, 0xB1, 0xB1,
+            0xB1, 0xB1, 0xB1, 0xB1,
+            0x08, 0x00,
+        ];
+
+        for b in bytes {
+            parser.put_byte(b);
+        }
+        let frame = parser.parse();
+        assert!(matches!(frame.p_type, PacketType::IPv4));
+        assert_eq!(frame.dest.to_string(), "A1:A1:A1:A1:A1:A1".to_string());
+        assert_eq!(frame.is_arp(), false);
+        assert_eq!(frame.is_802_3(), false);
+
+    }
 }
 

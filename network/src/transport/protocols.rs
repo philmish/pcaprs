@@ -123,4 +123,24 @@ mod tests {
         
     }
 
+    #[test]
+    fn test_transport_proto_to_str() {
+
+        assert_eq!(TransportProtocol::IPv6HopByHop.to_str(), "IPv6 Hop-By-Hop Option".to_string());
+        assert_eq!(TransportProtocol::ICMP.to_str(), "ICMP".to_string());
+        assert_eq!(TransportProtocol::IGMP.to_str(), "Internet Group Management Protocol".to_string());
+        assert_eq!(TransportProtocol::GGP.to_str(), "Gateway-to-Gateway".to_string());
+        assert_eq!(TransportProtocol::IPinIP.to_str(), "IP in IP (encapsulated)".to_string());
+        assert_eq!(TransportProtocol::ST.to_str(), "Internet Stream Protocol".to_string());
+        assert_eq!(TransportProtocol::TCP.to_str(), "TCP".to_string());
+        assert_eq!(TransportProtocol::CBT.to_str(), "Core Based Trees".to_string());
+        assert_eq!(TransportProtocol::EGP.to_str(), "Exterior Gateway".to_string());
+        assert_eq!(TransportProtocol::IGP.to_str(), "Interior Gateway".to_string());
+        assert_eq!(TransportProtocol::NVP2.to_str(), "Network Voice Protocol".to_string());
+        assert_eq!(TransportProtocol::UDP.to_str(), "UDP".to_string());
+        assert_eq!(TransportProtocol::UNKNOWN(18).to_str(), format!("Unknown {}", 18));
+        
+        
+    }
+
 }
