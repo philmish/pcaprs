@@ -271,7 +271,7 @@ mod tests {
             parser.put_byte(b);
         }
         let frame = parser.parse();
-        assert!(matches!(frame.p_type, PacketType::IPv4));
+        assert!(matches!(frame.packet_type(), PacketType::IPv4));
         assert_eq!(frame.dest.to_string(), "A1:A1:A1:A1:A1:A1".to_string());
         assert_eq!(frame.is_arp(), false);
         assert_eq!(frame.is_802_3(), false);

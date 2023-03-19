@@ -168,6 +168,16 @@ mod tests {
     }
 
     #[test]
+    fn test_new_magic_number() {
+
+        assert!(matches!(MagicNumber::from_row(0xa1b2c3d4), MagicNumber::PCAP));
+        assert!(matches!(MagicNumber::from_row(0xd4c3b2a1), MagicNumber::SWAPPED));
+        assert!(matches!(MagicNumber::from_row(0x0a0d0d0a), MagicNumber::PCAPNG));
+        assert!(matches!(MagicNumber::from_row(0x0AAAAAAA), MagicNumber::UNKNOWN));
+
+    }
+
+    #[test]
     fn test_file_header() {
         let b = vec![
             0xD4, 0xC3, 0xB2, 0xA1,
@@ -183,6 +193,32 @@ mod tests {
         assert_eq!(fh.major_version(), 2);
         assert_eq!(fh.minor_version(), 4);
         assert_eq!(fh.snap_len(), 0xFFFFFFFF);
+
+    }
+
+    #[test]
+    fn test_link_type_from_bytes() {
+
+        assert!(matches!(LinkType::new(0), LinkType::NULL));
+        assert!(matches!(LinkType::new(1), LinkType::ETHERNET));
+        assert!(matches!(LinkType::new(2), LinkType::EXPETHERNET));
+        assert!(matches!(LinkType::new(3), LinkType::AX25));
+        assert!(matches!(LinkType::new(4), LinkType::PRONET));
+        assert!(matches!(LinkType::new(5), LinkType::CHAOS));
+        assert!(matches!(LinkType::new(6), LinkType::UNKNOWN));
+
+    }
+
+    #[test]
+    fn test_link_type_to_str() {
+
+            assert_eq!(LinkType::NULL.to_string(), "Null".to_string());
+            assert_eq!(LinkType::ETHERNET.to_string(), "Ethernet".to_string());
+            assert_eq!(LinkType::EXPETHERNET.to_string(), "Experimental Ethernet".to_string());
+            assert_eq!(LinkType::AX25.to_string(), "AX 25".to_string());
+            assert_eq!(LinkType::PRONET.to_string(), "ProNET TokenRing".to_string());
+            assert_eq!(LinkType::CHAOS.to_string(), "Chaos".to_string());
+            assert_eq!(LinkType::UNKNOWN.to_string(), "Unknown".to_string());
 
     }
 

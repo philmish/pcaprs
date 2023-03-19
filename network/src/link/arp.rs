@@ -290,5 +290,28 @@ mod tests {
             )
         );
 
+        header.set_field(ARPHeaderField::HWS(12));
+        assert!(
+            matches!(
+                header.get_field(ARPHeaderField::HWS(0)),
+                ARPHeaderField::HWS(12)
+            )
+        );
+
+        header.set_field(ARPHeaderField::PAS(12));
+        assert!(
+            matches!(
+                header.get_field(ARPHeaderField::PAS(0)),
+                ARPHeaderField::PAS(12)
+            )
+        );
+
+        header.set_field(ARPHeaderField::OP(0xA1B2));
+        assert!(
+            matches!(
+                header.get_field(ARPHeaderField::OP(0)),
+                ARPHeaderField::OP(0xA1B2)
+            )
+        );
     }
 }
