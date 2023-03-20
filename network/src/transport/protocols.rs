@@ -140,7 +140,6 @@ mod tests {
         assert_eq!(TransportProtocol::UDP.to_str(), "UDP".to_string());
         assert_eq!(TransportProtocol::UNKNOWN(18).to_str(), format!("Unknown {}", 18));
         
-        
     }
 
 }

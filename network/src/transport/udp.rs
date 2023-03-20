@@ -152,3 +152,22 @@ impl UdpHeaderParser {
         }
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_udp_header_field() {
+        assert!(matches!(UdpHeaderField::SRC(0).clone(), UdpHeaderField::SRC(0)));
+        assert!(matches!(UdpHeaderField::DST(0).clone(), UdpHeaderField::DST(0)));
+        assert!(matches!(UdpHeaderField::LEN(0).clone(), UdpHeaderField::LEN(0)));
+        assert!(matches!(UdpHeaderField::CHECK(0).clone(), UdpHeaderField::CHECK(0)));
+        assert!(matches!(UdpHeaderField::UNSET.clone(), UdpHeaderField::UNSET));
+
+        assert_eq!(UdpHeaderField::SRC(22).to_string(), "Src Port: 22".to_string());
+        assert_eq!(UdpHeaderField::DST(22).to_string(), "Dest Port: 22".to_string());
+        assert_eq!(UdpHeaderField::LEN(44).to_string(), "Length: 44".to_string());
+        assert_eq!(UdpHeaderField::UNSET.to_string(), "UNSET".to_string());
+    }
+}
